@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - Saintly Scheduler{% endblock %}
+
+{% block content %}
+<div class="auth-container fade-in">
+    <div class="auth-card slide-up">
+        <div class="auth-header">
+            <i class="fas fa-user-plus auth-icon"></i>
+            <h1>Create Account</h1>
+            <p class="subtitle">Join Saintly Scheduler today</p>
+        </div>
+        
+        <form method="POST" class="auth-form">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                <div class="input-group">
+                    <i class="fas fa-user input-icon"></i>
+                    {{ form.username(class="form-control custom-input", placeholder="Username") }}
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="input-group">
+                    <i class="fas fa-envelope input-icon"></i>
+                    {{ form.email(class="form-control custom-input", placeholder="Email") }}
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="input-group">
+                    <i class="fas fa-lock input-icon"></i>
+                    {{ form.password(class="form-control custom-input", placeholder="Password") }}
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="input-group">
+                    <i class="fas fa-lock input-icon"></i>
+                    {{ form.confirm_password(class="form-control custom-input", placeholder="Confirm Password") }}
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block pulse">Create Account</button>
+        </form>
+        
+        <div class="auth-footer">
+            <p>Already have an account? <a href="{{ url_for('login') }}">Login here</a></p>
+        </div>
+    </div>
+</div>
+
+<style> 
+
+.auth-container {
+    min-height: 100vh;
+    padding: 2rem;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 2rem;
+    border-radius: 15px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: white;
+}
+
+.auth-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: white;
+}
+
+.auth-header h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.auth-header .subtitle {
+    opacity: 0.9;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.auth-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.input-group {
+    position: relative;
+}
+
+.input-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #1e3c72;
+    z-index: 1;
+}
+
+.custom-input {
+    padding-left: 3rem;
+    border-radius: 50px;
+    border: none;
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.btn-block {
+    border-radius: 50px;
+    padding: 0.8rem;
+    font-size: 1.1rem;
+    background: linear-gradient(135deg, #4e54c8 0%, #8f94fb 100%);
+    border: none;
+    margin-top: 2rem;
+    color: white;
+    width: 100%;
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 2rem;
+    color: white;
+}
+
+.auth-footer a {
+    color: #8f94fb;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.auth-footer a:hover {
+    color: #4e54c8;
+}
+
+/* Animations */
+.fade-in {
+    animation: fadeIn 0.8s ease forwards;
+}
+
+.slide-up {
+    animation: slideUp 0.5s ease forwards;
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+</style>
+{% endblock %}

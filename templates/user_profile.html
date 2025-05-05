@@ -1,0 +1,273 @@
+{% extends 'base.html' %}
+
+{% block title %}User Profile - Saintly Scheduler{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <header class="profile-header fade-in">
+        <h1>Your Profile</h1>
+        <p class="subtitle">Manage your account settings and view your statistics</p>
+    </header>
+
+    <div class="profile-grid">
+        <!-- Profile Update Section -->
+        <div class="profile-card slide-up" style="--delay: 0.1s">
+            <div class="card-header gradient-blue">
+                <i class="fas fa-user"></i>
+                <h2>Update Your Information</h2>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('user_profile') }}" method="POST">
+                    {{ profile_form.hidden_tag() }}
+                    <div class="form-group">
+                        <label>Username</label>
+                        {{ profile_form.username(class="form-control") }}
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        {{ profile_form.email(class="form-control") }}
+                    </div>
+                    {{ profile_form.submit_profile(class="btn btn-primary w-100") }}
+                </form>
+            </div>
+        </div>
+
+        <!-- Password Update Section -->
+        <div class="profile-card slide-up" style="--delay: 0.2s">
+            <div class="card-header gradient-purple">
+                <i class="fas fa-lock"></i>
+                <h2>Change Password</h2>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('user_profile') }}" method="POST">
+                    {{ password_form.hidden_tag() }}
+                    <div class="form-group">
+                        <label>Current Password</label>
+                        {{ password_form.current_password(class="form-control") }}
+                    </div>
+                    <div class="form-group">
+                        <label>New Password</label>
+                        {{ password_form.new_password(class="form-control") }}
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm New Password</label>
+                        {{ password_form.confirm_password(class="form-control") }}
+                    </div>
+                    {{ password_form.submit_password(class="btn btn-primary w-100") }}
+                </form>
+            </div>
+        </div>
+
+        <!-- User Stats Section -->
+        <div class="profile-card slide-up" style="--delay: 0.3s">
+            <div class="card-header gradient-green">
+                <i class="fas fa-chart-bar"></i>
+                <h2>Your Statistics</h2>
+            </div>
+            <div class="card-body">
+                <div class="stat-item">
+                    <i class="fas fa-tasks"></i>
+                    <div class="stat-info">
+                        <h3>Tasks Created</h3>
+                        <p class="stat-value">{{ stats.total_tasks }}</p>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-check-circle"></i>
+                    <div class="stat-info">
+                        <h3>Tasks Completed</h3>
+                        <p class="stat-value">{{ stats.completed_tasks }}</p>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-percentage"></i>
+                    <div class="stat-info">
+                        <h3>Completion Rate</h3>
+                        <p class="stat-value">{{ "%.2f"|format(stats.completed_tasks / stats.total_tasks * 100) if stats.total_tasks > 0 else "0.00" }}%</p>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-calendar-check"></i>
+                    <div class="stat-info">
+                        <h3>First Task Created</h3>
+                        <p class="stat-value">{{ stats.first_task_date.strftime('%Y-%m-%d') if stats.first_task_date else "No tasks yet" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.profile-container {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: white;
+}
+
+.profile-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding: 2rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+}
+
+.profile-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.profile-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    padding: 1rem;
+}
+
+.profile-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    transition: transform 0.3s ease;
+}
+
+.profile-card:hover {
+    transform: translateY(-5px);
+}
+
+.card-header {
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.card-header i {
+    font-size: 1.5rem;
+}
+
+.card-header h2 {
+    margin: 0;
+    font-size: 1.4rem;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.gradient-blue {
+    background: linear-gradient(135deg, rgba(78, 84, 200, 0.8) 0%, rgba(143, 148, 251, 0.8) 100%);
+}
+
+.gradient-green {
+    background: linear-gradient(135deg, rgba(0, 184, 148, 0.8) 0%, rgba(0, 206, 201, 0.8) 100%);
+}
+
+.gradient-purple {
+    background: linear-gradient(135deg, rgba(155, 89, 182, 0.8) 0%, rgba(142, 68, 173, 0.8) 100%);
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-item:last-child {
+    border-bottom: none;
+}
+
+.stat-item i {
+    font-size: 1.5rem;
+    width: 40px;
+    text-align: center;
+}
+
+.stat-info {
+    flex: 1;
+}
+
+.stat-info h3 {
+    font-size: 1rem;
+    margin: 0;
+    opacity: 0.9;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    margin: 0;
+    font-weight: bold;
+}
+
+.form-control {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.form-control:focus {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: white;
+    box-shadow: none;
+}
+
+.form-control::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Animations */
+.fade-in {
+    animation: fadeIn 0.8s ease forwards;
+}
+
+.slide-up {
+    opacity: 0;
+    animation: slideUp 0.5s ease forwards;
+    animation-delay: var(--delay);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .profile-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .profile-header h1 {
+        font-size: 2rem;
+    }
+}
+</style>
+{% endblock %}
+

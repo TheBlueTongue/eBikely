@@ -1,0 +1,98 @@
+.bg-study {
+    background-color: #31a036; /* Solid green for Study */
+    color: rgb(0, 0, 0);
+}
+
+.bg-exam {
+    background-color: #ce2828; /* Solid red for Exam */
+    color: rgb(0, 0, 0);
+}
+
+.bg-sport {
+    background-color: #1587e3; /* Solid blue for Sport */
+    color: rgb(0, 0, 0);
+}
+
+.bg-social {
+    background-color: #ffa500; /* Solid orange for Social */
+    color: rgb(0, 0, 0);
+}
+
+.bg-other {
+    background-color: #bf77f6; /* Solid purple for Other */
+    color: rgb(0, 0, 0);
+}
+
+.text-muted {
+    color: #777575; /* Lighter gray for completed tasks */
+    text-decoration: line-through; /* Line-through for completed tasks */
+}
+
+.card {
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: scale(1.05);
+}
+
+.text-white {
+    color: white;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Welcome Page Styles */
+.welcome-container {
+    overflow-x: hidden;
+}
+
+.hero-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 100px 0;
+}
+
+.feature-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+}
+
+.stat-card {
+    padding: 2rem;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: scale(1.05);
+}
+
+.testimonial-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.testimonial-card:hover {
+    transform: translateY(-5px);
+}
+
+.rounded-circle {
+    object-fit: cover;
+    border: 3px solid #007bff;
+}
+
+
