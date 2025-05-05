@@ -1,15 +1,14 @@
-<!-- login.html -->
 {% extends 'base.html' %}
 
-{% block title %}Login - Saintly Scheduler{% endblock %}
+{% block title %}Login - eBikely{% endblock %}
 
 {% block content %}
 <div class="auth-container fade-in">
     <div class="auth-card slide-up">
         <div class="auth-header">
-            <i class="fas fa-sign-in-alt auth-icon"></i>
-            <h1>Welcome Back</h1>
-            <p class="subtitle">Log in to manage your tasks</p>
+            <i class="fas fa-bicycle auth-icon"></i>
+            <h1>Welcome Back, Rider</h1>
+            <p class="subtitle">Log in to access your ride details and safety tools</p>
         </div>
         
         <form method="POST" action="{{ url_for('login') }}" class="auth-form">
@@ -30,7 +29,7 @@
         </form>
         
         <div class="auth-footer">
-            <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
+            <p>New to eBikely? <a href="{{ url_for('register') }}">Register your ride</a></p>
         </div>
     </div>
 </div>
@@ -39,20 +38,20 @@
 .auth-container {
     min-height: 100vh;
     padding: 2rem;
-    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    background: linear-gradient(135deg, #004e92 0%, #000428 100%);
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .auth-card {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(10px);
     padding: 2rem;
     border-radius: 15px;
     width: 100%;
     max-width: 400px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 .auth-header {
@@ -64,13 +63,13 @@
 .auth-icon {
     font-size: 3rem;
     margin-bottom: 1rem;
-    color: white;
+    color: #00c6ff;
 }
 
 .auth-header h1 {
     font-size: 2rem;
     margin-bottom: 0.5rem;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 .auth-header .subtitle {
@@ -91,7 +90,7 @@
     left: 1rem;
     top: 50%;
     transform: translateY(-50%);
-    color: #1e3c72;
+    color: #004e92;
     z-index: 1;
 }
 
@@ -106,9 +105,10 @@
     border-radius: 50px;
     padding: 0.8rem;
     font-size: 1.1rem;
-    background: linear-gradient(135deg, #4e54c8 0%, #8f94fb 100%);
+    background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
     border: none;
     margin-top: 2rem;
+    color: white;
 }
 
 .auth-footer {
@@ -118,16 +118,16 @@
 }
 
 .auth-footer a {
-    color: #8f94fb;
+    color: #00c6ff;
     text-decoration: none;
     font-weight: bold;
 }
 
 .auth-footer a:hover {
-    color: #4e54c8;
+    color: #0072ff;
 }
 
-/* Include the existing animations from welcome/dashboard pages */
+/* Animations */
 .fade-in {
     animation: fadeIn 0.8s ease forwards;
 }
@@ -140,6 +140,29 @@
     animation: pulse 2s infinite;
 }
 
-/* ...existing keyframes... */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
 </style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 {% endblock %}
+

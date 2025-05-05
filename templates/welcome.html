@@ -1,17 +1,17 @@
 {% extends 'base.html' %}
 
-{% block title %}Welcome - Saintly Scheduler{% endblock %}
+{% block title %}Welcome - eBikely{% endblock %}
 
 {% block content %}
 <div class="welcome-container">
     <div class="hero-section">
-        <h1 class="fade-in">Welcome to Saintly Scheduler</h1>
-        <p class="slide-up">Your personal task management companion</p>
+        <h1 class="fade-in">Welcome to eBikely</h1>
+        <p class="slide-up">Empowering safer, smarter e-bike use at school</p>
         
         <div class="cta-buttons slide-up">
             {% if not current_user.is_authenticated %}
                 <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg pulse">Login</a>
-                <a href="{{ url_for('register') }}" class="btn btn-outline-light btn-lg">Get Started</a>
+                <a href="{{ url_for('register') }}" class="btn btn-outline-light btn-lg">Register Your Ride</a>
             {% else %}
                 <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg pulse">Go to Dashboard</a>
             {% endif %}
@@ -20,40 +20,39 @@
 
     <div class="features-grid slide-up-delay">
         <div class="feature-card">
-            <i class="fas fa-tasks feature-icon"></i>
-            <h3>Task Management</h3>
-            <p>Organize your tasks with ease</p>
+            <i class="fas fa-bicycle feature-icon"></i>
+            <h3>e-Bike Registration</h3>
+            <p>Securely register your e-bike with the school system</p>
         </div>
         <div class="feature-card">
-            <i class="fas fa-calendar-check feature-icon"></i>
-            <h3>Due Dates</h3>
-            <p>Never miss a deadline</p>
+            <i class="fas fa-clipboard-check feature-icon"></i>
+            <h3>Safety Testing</h3>
+            <p>Pass a custom safety quiz before riding to school</p>
         </div>
         <div class="feature-card">
-            <i class="fas fa-chart-line feature-icon"></i>
-            <h3>Progress Tracking</h3>
-            <p>Monitor your productivity</p>
+            <i class="fas fa-user-shield feature-icon"></i>
+            <h3>Admin Oversight</h3>
+            <p>Staff tools to monitor usage and review incidents</p>
         </div>
     </div>
 
-    <!-- New Reviews Section -->
     <div class="reviews-section slide-up-delay">
-        <h2 class="text-white mb-4">What Our Users Say</h2>
-        <div clasrgb(99, 58, 58)views-grid">
+        <h2 class="text-white mb-4">What Our Riders Say</h2>
+        <div class="reviews-grid">
             <div class="review-card">
                 <div class="stars">★★★★★</div>
-                <p class="review-text">"This scheduler has completely transformed how I manage my school work. Love the intuitive interface!"</p>
-                <div class="reviewer">- James S., Year 12</div>
+                <p class="review-text">"eBikely makes it easy to prove I'm riding safely and gives teachers peace of mind."</p>
+                <div class="reviewer">- Liam R., Year 11</div>
             </div>
             <div class="review-card">
                 <div class="stars">★★★★★</div>
-                <p class="review-text">"The best task management app I've used. Perfect for keeping track of assignments and due dates."</p>
-                <div class="reviewer">- Sarah M., Year 11</div>
+                <p class="review-text">"The safety test is a great idea—now everyone riding to school knows the rules."</p>
+                <div class="reviewer">- Priya K., Year 12</div>
             </div>
             <div class="review-card">
                 <div class="stars">★★★★½</div>
-                <p class="review-text">"Great for organizing both academic and extracurricular activities. Highly recommend!"</p>
-                <div class="reviewer">- Michael T., Year 10</div>
+                <p class="review-text">"Really smart way to handle all the e-bike chaos. Clean interface too!"</p>
+                <div class="reviewer">- Marcus L., Year 10</div>
             </div>
         </div>
     </div>
