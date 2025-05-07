@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, Boolean, Date, DateTime, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from flask_login import UserMixin
 from datetime import datetime
@@ -18,24 +18,48 @@ class User(Base, UserMixin):
     username = Column(String(150), unique=True, nullable=False)
     email = Column(String(150), nullable=True)  
     password = Column(String(150), nullable=False)
-    tasks = relationship('Task', back_populates='owner')
+    ebikes = relationship('EBike', back_populates='owner')
+    practice_tests = relationship('PracticeTest', back_populates='user')
+    real_tests = relationship('RealTest', back_populates='user')
 
-class Task(Base):
-    __tablename__ = 'tasks'
+class EBike(Base):
+    __tablename__ = 'ebikes'
 
     id = Column(Integer, primary_key=True)
-    title = Column(String(150), nullable=False)
-    category = Column(String(50), nullable=False)
-    description = Column(String(500), nullable=True)
-    due_date = Column(Date, nullable=True)
-    is_complete = Column(Boolean, default=False)
+    owner_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    name = Column(String(100), nullable=False)
+    model = Column(String(100), nullable=False)
+    max_speed = Column(Integer, nullable=False)
+    is_approved = Column(Boolean, default=False)
+    owner = relationship('User', back_populates='ebikes')
+
+class ParkingSpot(Base):
+    __tablename__ = 'parking_spots'
+
+    id = Column(Integer, primary_key=True)
+    spot_number = Column(String(10), unique=True, nullable=False)
+    is_occupied = Column(Boolean, default=False)
+    occupant_id = Column(Integer, ForeignKey('users.id'), nullable=True)
+
+class PracticeTest(Base):
+    __tablename__ = 'practice_tests'
+
+    id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    important = Column(Boolean, default=False)
-    owner = relationship('User', back_populates='tasks')
-    
-    # Add created_at column to track task creation time
-    created_at = Column(DateTime, default=datetime.utcnow)  # Automatically set the current timestamp on task creation
+    score = Column(Integer, nullable=False)
+    date_taken = Column(DateTime, default=datetime.utcnow)
+    passed = Column(Boolean, nullable=False)
+    user = relationship('User', back_populates='practice_tests')
+
+class RealTest(Base):
+    __tablename__ = 'real_tests'
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    date = Column(DateTime, default=datetime.utcnow)
+    score = Column(Integer, nullable=False)
+    passed = Column(Boolean, nullable=False)
+    user = relationship('User', back_populates='real_tests')
 
 # Create tables if they don't already exist
 Base.metadata.create_all(bind=engine)
-
