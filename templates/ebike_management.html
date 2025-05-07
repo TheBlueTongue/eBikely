@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}E-Bike Management - eBikely{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="auth-card">
+        <h1>E-Bike Management</h1>
+
+        {% if ebikes %}
+            <h2>Your Registered E-Bikes</h2>
+            <div class="list-group">
+                {% for ebike in ebikes %}
+                    <div class="list-group-item">
+                        <h4>{{ ebike.model }}</h4>
+                        <p>Serial Number: {{ ebike.serial_number }}</p>
+                        <p>Registration Date: {{ ebike.registration_date.strftime('%Y-%m-%d') }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <h2>No E-Bike Registered</h2>
+            <p>You haven't registered an e-bike yet. Please register your e-bike below:</p>
+
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                <div class="form-group">
+                    <label for="model">E-Bike Model</label>
+                    {{ form.model(class="form-control custom-input") }}
+                </div>
+                <div class="form-group">
+                    <label for="serial_number">Serial Number</label>
+                    {{ form.serial_number(class="form-control custom-input") }}
+                </div>
+                <button type="submit" class="btn btn-primary btn-block pulse">Register E-Bike</button>
+            </form>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.container {
+    padding: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #004e92 0%, #000428 100%);
+}
+
+.auth-card {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    padding: 2rem;
+    border-radius: 15px;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    color: white;
+}
+
+h1, h2 {
+    font-size: 2rem;
+    color: white;
+    margin-bottom: 1rem;
+}
+
+h2 {
+    font-size: 1.5rem;
+    color: #00c6ff;
+}
+
+.list-group {
+    margin-top: 1rem;
+}
+
+.list-group-item {
+    background-color: rgba(255, 255, 255, 0.1);
+    margin-bottom: 1rem;
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-control {
+    border-radius: 50px;
+    padding-left: 1.5rem;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+}
+
+.btn-block {
+    border-radius: 50px;
+    padding: 0.8rem;
+    font-size: 1.1rem;
+    background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+    border: none;
+    margin-top: 2rem;
+    color: white;
+}
+
+.btn-block:hover {
+    background: linear-gradient(135deg, #0072ff 0%, #00c6ff 100%);
+}
+
+.input-group {
+    position: relative;
+}
+
+.input-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #004e92;
+    z-index: 1;
+}
+
+/* Animations */
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}

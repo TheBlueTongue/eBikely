@@ -77,15 +77,11 @@ def logout():
 @login_required
 def dashboard():
     session = SessionLocal()
-
-    # Fetch user-related data for the dashboard
     ebike_count = session.query(EBike).filter_by(owner_id=current_user.id).count()
     completed_practice_tests = session.query(PracticeTest).filter_by(user_id=current_user.id, passed=True).count()
     total_tests = session.query(RealTest).filter_by(user_id=current_user.id).count()
     available_parking_spots = session.query(ParkingSpot).filter_by(is_occupied=False).count()
-
     session.close()
-
     return render_template(
         'dashboard.html',
         ebike_count=ebike_count,
@@ -94,31 +90,52 @@ def dashboard():
         total_tests=total_tests
     )
 
-# Route for e-bike registration
-@app.route('/register-ebike', methods=['GET', 'POST'])
+# Route for e-bike management
+@app.route('/ebikes', methods=['GET', 'POST'])
 @login_required
-def register_ebike():
-    form = forms.EBikeRegistrationForm()
-    if form.validate_on_submit():
-        session = SessionLocal()
-        new_ebike = EBike(
-            owner_id=current_user.id,
-            name=form.ebike_name.data,
-            model=form.model.data,
-            max_speed=form.max_speed.data,
-            is_approved=False
-        )
-        session.add(new_ebike)
-        session.commit()
-        session.close()
-        flash('E-Bike registered successfully!', 'success')
-        return redirect(url_for('dashboard'))
-    return render_template('ebike_registration.html', form=form)
+def ebike_management():
+    session = SessionLocal()
+    ebikes = session.query(EBike).filter_by(owner_id=current_user.id).all()
 
-# Route for practice test
-@app.route('/practice-test', methods=['GET', 'POST'])
+    if not ebikes:  # If no e-bike is registered
+        if request.method == 'POST':  # Handle the form submission for new e-bike registration
+            # Assuming a form for registering an e-bike exists
+            form = forms.EbikeRegistrationForm()
+            if form.validate_on_submit():
+                new_ebike = EBike(
+                    owner_id=current_user.id,
+                    model=form.model.data,
+                    serial_number=form.serial_number.data,
+                    registration_date=datetime.now()
+                )
+                session.add(new_ebike)
+                session.commit()
+                flash('E-bike registered successfully!', 'success')
+                return redirect(url_for('ebike_management'))
+            return render_template('ebike_management.html', form=form)
+        else:
+            # If the user hasn't registered an e-bike, show the registration form
+            form = forms.EbikeRegistrationForm()
+            return render_template('ebike_management.html', form=form)
+    
+    session.close()
+    return render_template('ebike_management.html', ebikes=ebikes)
+
+
+
+# Route for parking overview
+@app.route('/parking-spots')
 @login_required
-def practice_test():
+def parking_spots():
+    session = SessionLocal()
+    parking_spots = session.query(ParkingSpot).all()
+    session.close()
+    return render_template('parking_overview.html', parking_spots=parking_spots)
+
+# Route for practice tests
+@app.route('/practice-tests', methods=['GET', 'POST'])
+@login_required
+def practice_tests():
     form = forms.PracticeTestForm()
     if form.validate_on_submit():
         session = SessionLocal()
@@ -134,10 +151,10 @@ def practice_test():
         return redirect(url_for('dashboard'))
     return render_template('practice_test.html', form=form)
 
-# Route for real test
-@app.route('/real-test', methods=['GET', 'POST'])
+# Route for real tests
+@app.route('/real-tests', methods=['GET', 'POST'])
 @login_required
-def real_test():
+def real_tests():
     form = forms.RealTestForm()
     if form.validate_on_submit():
         session = SessionLocal()
@@ -154,30 +171,12 @@ def real_test():
         return redirect(url_for('dashboard'))
     return render_template('real_test.html', form=form)
 
-# Route for parking overview
-@app.route('/parking-overview')
+# Route for user profile
+@app.route('/profile')
 @login_required
-def parking_overview():
-    session = SessionLocal()
-    parking_spots = session.query(ParkingSpot).all()
-    session.close()
-    return render_template('parking_overview.html', parking_spots=parking_spots)
-
-# Route for parking reservation
-@app.route('/reserve-parking/<int:spot_id>', methods=['POST'])
-@login_required
-def reserve_parking(spot_id):
-    session = SessionLocal()
-    parking_spot = session.query(ParkingSpot).get(spot_id)
-    if parking_spot and not parking_spot.is_occupied:
-        parking_spot.is_occupied = True
-        parking_spot.occupant_id = current_user.id
-        session.commit()
-        flash('Parking spot reserved successfully!', 'success')
-    else:
-        flash('Parking spot is already occupied.', 'danger')
-    session.close()
-    return redirect(url_for('parking_overview'))
+def user_profile():
+    return render_template('user_profile.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
+

@@ -31,6 +31,7 @@ class EBike(Base):
     model = Column(String(100), nullable=False)
     max_speed = Column(Integer, nullable=False)
     is_approved = Column(Boolean, default=False)
+    serial_number = Column(String(100), unique=True, nullable=False)  # serial_number added here
     owner = relationship('User', back_populates='ebikes')
 
 class ParkingSpot(Base):

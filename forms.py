@@ -29,14 +29,10 @@ class PasswordUpdateForm(FlaskForm):
     confirm_password = PasswordField('Confirm New Password', validators=[DataRequired(), EqualTo('new_password')])
     submit_password = SubmitField('Update Password')
 
-# Form for e-bike registration
-class EBikeRegistrationForm(FlaskForm):
-    make = StringField('E-bike Make', validators=[DataRequired(), Length(max=150)])
-    model = StringField('E-bike Model', validators=[DataRequired(), Length(max=150)])
-    serial_number = StringField('Serial Number', validators=[DataRequired(), Length(max=150)])
-    color = StringField('Color', validators=[DataRequired(), Length(max=50)])
-    approved = BooleanField('Approved for School Use')
-    submit = SubmitField('Register E-bike')
+class EbikeRegistrationForm(FlaskForm):
+    model = StringField('E-Bike Model', validators=[DataRequired()])
+    serial_number = StringField('Serial Number', validators=[DataRequired()])
+    submit = SubmitField('Register E-Bike')
 
 # Form for parking spot management
 class ParkingSpotForm(FlaskForm):
