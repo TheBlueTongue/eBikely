@@ -106,8 +106,9 @@ def ebike_management():
                     owner_id=current_user.id,
                     model=form.model.data,
                     serial_number=form.serial_number.data,
-                    registration_date=datetime.now()
-                )
+                    # Remove registration_date as it's automatically handled by the database
+)
+
                 session.add(new_ebike)
                 session.commit()
                 flash('E-bike registered successfully!', 'success')

@@ -1,6 +1,10 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, TextAreaField, DateField, IntegerField, SelectField, BooleanField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, NumberRange
+from flask_wtf import FlaskForm
+from wtforms.fields import DateTimeField
+from datetime import datetime
+
 
 # Form for user login
 class LoginForm(FlaskForm):
@@ -33,7 +37,8 @@ class EbikeRegistrationForm(FlaskForm):
     model = StringField('E-Bike Model', validators=[DataRequired()])
     serial_number = StringField('Serial Number', validators=[DataRequired()])
     submit = SubmitField('Register E-Bike')
-
+    registration_date = DateTimeField('Registration Date', default=datetime.utcnow, format='%Y-%m-%d %H:%M:%S')
+    
 # Form for parking spot management
 class ParkingSpotForm(FlaskForm):
     spot_number = IntegerField('Parking Spot Number', validators=[DataRequired(), NumberRange(min=1)])

@@ -27,11 +27,10 @@ class EBike(Base):
 
     id = Column(Integer, primary_key=True)
     owner_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    name = Column(String(100), nullable=False)
     model = Column(String(100), nullable=False)
-    max_speed = Column(Integer, nullable=False)
     is_approved = Column(Boolean, default=False)
     serial_number = Column(String(100), unique=True, nullable=False)  # serial_number added here
+    registration_date = Column(DateTime, default=datetime.utcnow) 
     owner = relationship('User', back_populates='ebikes')
 
 class ParkingSpot(Base):
