@@ -137,7 +137,8 @@ def ebike_management():
 @app.route('/practice', methods=['GET', 'POST'])
 @login_required
 def practice_quiz():
-    questions = db.session.query(PracticeQuestion).all()
+    session = SessionLocal()  # Create a new session
+    questions = session.query(PracticeQuestion).all()  # Fetch questions
     form = PracticeQuizForm()
     
     # Populate the form with questions if it's a GET request
@@ -146,6 +147,7 @@ def practice_quiz():
             (q.id, f"{q.question_text}\nA. {q.option_a}  B. {q.option_b}  C. {q.option_c}  D. {q.option_d}") 
             for q in questions
         ]
+        session.close()  # Close the session after GET request
         return render_template('practice_quiz.html', form=form)
 
     # Handle the form submission
@@ -158,13 +160,15 @@ def practice_quiz():
         
         # Save the attempt
         attempt = PracticeAttempt(user_id=current_user.id, score=score)
-        db.session.add(attempt)
-        db.session.commit()
+        session.add(attempt)
+        session.commit()
         
         flash(f"You scored {score}/{len(questions)}", "success")
+        session.close()  # Close the session after POST request
         return redirect(url_for('practice_quiz'))
     
     flash("Please select an answer for each question.", "danger")
+    session.close()  # Close the session if form is not submitted
     return render_template('practice_quiz.html', form=form)
 
 @app.route('/parking_spots')
