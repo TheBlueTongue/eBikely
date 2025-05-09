@@ -1,16 +1,159 @@
 {% extends "base.html" %}
+
+{% block title %}Practice Quiz - eBikely{% endblock %}
+
 {% block content %}
-    <h2>E-Bike Safety Practice Quiz</h2>
-    <form method="POST">
-        {{ form.hidden_tag() }}
-        {% for choice in form.question.choices %}
-            <div>
-                <label>
-                    <input type="radio" name="{{ form.question.name }}" value="{{ choice[0] }}">
-                    {{ choice[1] }}
-                </label>
+<div class="auth-container fade-in">
+    <div class="auth-card slide-up">
+        <div class="auth-header">
+            <i class="fas fa-question-circle auth-icon"></i>
+            <h1>E-Bike Safety Practice Quiz</h1>
+            <p class="subtitle">Test your knowledge and stay safe on the road</p>
+        </div>
+        
+        <form method="POST" action="{{ url_for('practice_quiz') }}" class="auth-form">
+            {{ form.hidden_tag() }}
+            <div class="quiz-group">
+                {% for choice in form.question.choices %}
+                <div class="quiz-question">
+                    <label>
+                        <input type="radio" name="{{ form.question.name }}" value="{{ choice[0] }}" class="quiz-option">
+                        {{ choice[1] }}
+                    </label>
+                </div>
+                {% endfor %}
             </div>
-        {% endfor %}
-        <button type="submit" class="btn btn-primary">{{ form.submit.label }}</button>
-    </form>
+            <button type="submit" class="btn btn-primary btn-block pulse">Submit Quiz</button>
+        </form>
+        
+        <div class="auth-footer">
+            <p>Need more practice? <a href="{{ url_for('dashboard') }}">Back to Dashboard</a></p>
+        </div>
+    </div>
+</div>
+
+<style>
+.auth-container {
+    min-height: 100vh;
+    padding: 2rem;
+    background: linear-gradient(135deg, #004e92 0%, #000428 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-card {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    padding: 2rem;
+    border-radius: 15px;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: white;
+}
+
+.auth-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: #00c6ff;
+}
+
+.auth-header h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.auth-header .subtitle {
+    opacity: 0.9;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.quiz-group {
+    margin-bottom: 1.5rem;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 1rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.quiz-question {
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.quiz-option {
+    margin-right: 0.5rem;
+}
+
+.btn-block {
+    border-radius: 50px;
+    padding: 0.8rem;
+    font-size: 1.1rem;
+    background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+    border: none;
+    margin-top: 2rem;
+    color: white;
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 2rem;
+    color: white;
+}
+
+.auth-footer a {
+    color: #00c6ff;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.auth-footer a:hover {
+    color: #0072ff;
+}
+
+/* Animations */
+.fade-in {
+    animation: fadeIn 0.8s ease forwards;
+}
+
+.slide-up {
+    animation: slideUp 0.5s ease forwards;
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+</style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 {% endblock %}
+
