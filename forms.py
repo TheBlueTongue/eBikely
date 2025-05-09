@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, TextAreaField, DateField, IntegerField, SelectField, BooleanField
+from wtforms import StringField, PasswordField, SubmitField, RadioField, TextAreaField, DateField, IntegerField, SelectField, BooleanField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, NumberRange
 from flask_wtf import FlaskForm
 from wtforms.fields import DateTimeField
@@ -39,21 +39,6 @@ class EbikeRegistrationForm(FlaskForm):
     submit = SubmitField('Register E-Bike')
     registration_date = DateTimeField('Registration Date', default=datetime.utcnow, format='%Y-%m-%d %H:%M:%S')
     
-# Form for parking spot management
-class ParkingSpotForm(FlaskForm):
-    spot_number = IntegerField('Parking Spot Number', validators=[DataRequired(), NumberRange(min=1)])
-    location_description = TextAreaField('Location Description', validators=[Length(max=500)])
-    available = BooleanField('Available', default=True)
-    submit = SubmitField('Update Spot')
-
-# Form for practice test attempts
-class PracticeTestForm(FlaskForm):
-    score = IntegerField('Test Score', validators=[DataRequired(), NumberRange(min=0, max=100)])
-    passed = BooleanField('Passed')
-    submit = SubmitField('Submit Practice Test')
-
-# Form for real test attempts
-class RealTestForm(FlaskForm):
-    score = IntegerField('Test Score', validators=[DataRequired(), NumberRange(min=0, max=100)])
-    passed = BooleanField('Passed')
-    submit = SubmitField('Submit Real Test')
+class PracticeQuizForm(FlaskForm):
+    question = RadioField('Select the correct answer:', choices=[], validators=[DataRequired()])
+    submit = SubmitField('Submit')

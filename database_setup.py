@@ -3,10 +3,8 @@ from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from flask_login import UserMixin
 from datetime import datetime
 
-# Define a consistent path for the SQLite database file
 DATABASE_URL = 'sqlite:///persistent_database.db'
 
-# Set up the engine and base
 engine = create_engine(DATABASE_URL)
 Base = declarative_base()
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -16,11 +14,15 @@ class User(Base, UserMixin):
 
     id = Column(Integer, primary_key=True)
     username = Column(String(150), unique=True, nullable=False)
-    email = Column(String(150), nullable=True)  
+    email = Column(String(150), nullable=True)
     password = Column(String(150), nullable=False)
-    ebikes = relationship('EBike', back_populates='owner')
-    practice_tests = relationship('PracticeTest', back_populates='user')
-    real_tests = relationship('RealTest', back_populates='user')
+    
+    # Relationships
+    ebikes = relationship('EBike', back_populates='owner', cascade="all, delete-orphan")
+    practice_tests = relationship('PracticeTest', back_populates='user', cascade="all, delete-orphan")
+    real_tests = relationship('RealTest', back_populates='user', cascade="all, delete-orphan")
+    practice_attempts = relationship("PracticeAttempt", back_populates="user", cascade="all, delete-orphan")
+    parking_spot = relationship("ParkingSpot", back_populates="reserved_user", uselist=False)
 
 class EBike(Base):
     __tablename__ = 'ebikes'
@@ -29,37 +31,79 @@ class EBike(Base):
     owner_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     model = Column(String(100), nullable=False)
     is_approved = Column(Boolean, default=False)
-    serial_number = Column(String(100), unique=True, nullable=False)  # serial_number added here
+    serial_number = Column(String(100), unique=True, nullable=False)
     registration_date = Column(DateTime, default=datetime.utcnow) 
     owner = relationship('User', back_populates='ebikes')
 
-class ParkingSpot(Base):
-    __tablename__ = 'parking_spots'
-
-    id = Column(Integer, primary_key=True)
-    spot_number = Column(String(10), unique=True, nullable=False)
-    is_occupied = Column(Boolean, default=False)
-    occupant_id = Column(Integer, ForeignKey('users.id'), nullable=True)
-
 class PracticeTest(Base):
     __tablename__ = 'practice_tests'
-
+    
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    score = Column(Integer, nullable=False)
-    date_taken = Column(DateTime, default=datetime.utcnow)
-    passed = Column(Boolean, nullable=False)
-    user = relationship('User', back_populates='practice_tests')
+    name = Column(String(100), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    questions = relationship("PracticeQuestion", back_populates="test", cascade="all, delete-orphan")
+    user = relationship("User", back_populates="practice_tests")
+
+class PracticeQuestion(Base):
+    __tablename__ = 'practice_questions'
+
+    id = Column(Integer, primary_key=True)
+    test_id = Column(Integer, ForeignKey('practice_tests.id'), nullable=False)
+    question_text = Column(String, nullable=False)
+    correct_answer = Column(String, nullable=False)
+    option_a = Column(String, nullable=False)
+    option_b = Column(String, nullable=False)
+    option_c = Column(String, nullable=False)
+    option_d = Column(String, nullable=False)
+    
+    test = relationship("PracticeTest", back_populates="questions")
 
 class RealTest(Base):
     __tablename__ = 'real_tests'
+    
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    name = Column(String(100), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    questions = relationship("RealTestQuestion", back_populates="test", cascade="all, delete-orphan")
+    user = relationship("User", back_populates="real_tests")
+
+class RealTestQuestion(Base):
+    __tablename__ = 'real_test_questions'
+    
+    id = Column(Integer, primary_key=True)
+    test_id = Column(Integer, ForeignKey('real_tests.id'), nullable=False)
+    question_text = Column(String(255), nullable=False)
+    correct_answer = Column(String(1), nullable=False)
+    option_a = Column(String(100), nullable=False)
+    option_b = Column(String(100), nullable=False)
+    option_c = Column(String(100), nullable=False)
+    option_d = Column(String(100), nullable=False)
+    
+    test = relationship("RealTest", back_populates="questions")
+
+class PracticeAttempt(Base):
+    __tablename__ = 'practice_attempts'
 
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    date = Column(DateTime, default=datetime.utcnow)
     score = Column(Integer, nullable=False)
-    passed = Column(Boolean, nullable=False)
-    user = relationship('User', back_populates='real_tests')
+    attempt_date = Column(DateTime, default=datetime.utcnow)
 
-# Create tables if they don't already exist
+    user = relationship("User", back_populates="practice_attempts")
+
+class ParkingSpot(Base):
+    __tablename__ = 'parking_spots'
+    
+    id = Column(Integer, primary_key=True)
+    number = Column(String(10), nullable=False, unique=True)
+    is_available = Column(Boolean, default=True)
+    reserved_for = Column(Integer, ForeignKey('users.id'))
+    
+    reserved_user = relationship("User", back_populates="parking_spot")
+
 Base.metadata.create_all(bind=engine)
+

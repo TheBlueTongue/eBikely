@@ -2,9 +2,11 @@ from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
-from database_setup import SessionLocal, User, EBike, PracticeTest, RealTest, ParkingSpot
+from database_setup import SessionLocal, User, EBike, PracticeTest, RealTest, ParkingSpot, PracticeAttempt, PracticeQuestion
 import forms
 from datetime import datetime
+from forms import PracticeQuizForm
+
 
 # Set up Flask app and login manager
 app = Flask(__name__)
@@ -78,9 +80,19 @@ def logout():
 def dashboard():
     session = SessionLocal()
     ebike_count = session.query(EBike).filter_by(owner_id=current_user.id).count()
-    completed_practice_tests = session.query(PracticeTest).filter_by(user_id=current_user.id, passed=True).count()
+    PASSING_SCORE = 80
+
+    completed_practice_tests = (
+        session.query(PracticeAttempt)
+        .filter(
+            PracticeAttempt.user_id == current_user.id,
+            PracticeAttempt.score >= PASSING_SCORE
+        )
+        .count()
+    )
+
     total_tests = session.query(RealTest).filter_by(user_id=current_user.id).count()
-    available_parking_spots = session.query(ParkingSpot).filter_by(is_occupied=False).count()
+    available_parking_spots = session.query(ParkingSpot).filter_by(is_available=True).count()
     session.close()
     return render_template(
         'dashboard.html',
@@ -122,55 +134,51 @@ def ebike_management():
     session.close()
     return render_template('ebike_management.html', ebikes=ebikes)
 
+@app.route('/practice', methods=['GET', 'POST'])
+@login_required
+def practice_quiz():
+    questions = db.session.query(PracticeQuestion).all()
+    form = PracticeQuizForm()
+    
+    # Populate the form with questions if it's a GET request
+    if request.method == 'GET':
+        form.question.choices = [
+            (q.id, f"{q.question_text}\nA. {q.option_a}  B. {q.option_b}  C. {q.option_c}  D. {q.option_d}") 
+            for q in questions
+        ]
+        return render_template('practice_quiz.html', form=form)
 
+    # Handle the form submission
+    if form.validate_on_submit():
+        score = 0
+        for question in questions:
+            selected_answer = request.form.get(str(question.id))
+            if selected_answer == question.correct_answer:
+                score += 1
+        
+        # Save the attempt
+        attempt = PracticeAttempt(user_id=current_user.id, score=score)
+        db.session.add(attempt)
+        db.session.commit()
+        
+        flash(f"You scored {score}/{len(questions)}", "success")
+        return redirect(url_for('practice_quiz'))
+    
+    flash("Please select an answer for each question.", "danger")
+    return render_template('practice_quiz.html', form=form)
 
-# Route for parking overview
-@app.route('/parking-spots')
+@app.route('/parking_spots')
 @login_required
 def parking_spots():
     session = SessionLocal()
-    parking_spots = session.query(ParkingSpot).all()
+    spots = session.query(ParkingSpot).all()
     session.close()
-    return render_template('parking_overview.html', parking_spots=parking_spots)
+    return render_template('parking_spots.html', spots=spots)
 
-# Route for practice tests
-@app.route('/practice-tests', methods=['GET', 'POST'])
-@login_required
-def practice_tests():
-    form = forms.PracticeTestForm()
-    if form.validate_on_submit():
-        session = SessionLocal()
-        practice_test = PracticeTest(
-            user_id=current_user.id,
-            score=form.score.data,
-            passed=form.passed.data
-        )
-        session.add(practice_test)
-        session.commit()
-        session.close()
-        flash('Practice test submitted successfully!', 'success')
-        return redirect(url_for('dashboard'))
-    return render_template('practice_test.html', form=form)
-
-# Route for real tests
-@app.route('/real-tests', methods=['GET', 'POST'])
+@app.route('/real_tests')
 @login_required
 def real_tests():
-    form = forms.RealTestForm()
-    if form.validate_on_submit():
-        session = SessionLocal()
-        real_test = RealTest(
-            user_id=current_user.id,
-            date=datetime.now(),
-            score=form.score.data,
-            passed=form.passed.data
-        )
-        session.add(real_test)
-        session.commit()
-        session.close()
-        flash('Real test recorded successfully!', 'success')
-        return redirect(url_for('dashboard'))
-    return render_template('real_test.html', form=form)
+    return render_template('real_tests.html')
 
 # Route for user profile
 @app.route('/profile')
