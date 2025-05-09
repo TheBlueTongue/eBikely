@@ -36,8 +36,8 @@ class PasswordUpdateForm(FlaskForm):
 class EbikeRegistrationForm(FlaskForm):
     model = StringField('E-Bike Model', validators=[DataRequired()])
     serial_number = StringField('Serial Number', validators=[DataRequired()])
+    colour = StringField('E-Bike Colour', validators=[DataRequired()])
     submit = SubmitField('Register E-Bike')
-    registration_date = DateTimeField('Registration Date', default=datetime.utcnow, format='%Y-%m-%d %H:%M:%S')
     
 class PracticeQuizForm(FlaskForm):
     question = RadioField('Select the correct answer:', choices=[], validators=[DataRequired()])

@@ -2,10 +2,11 @@ from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
-from database_setup import SessionLocal, User, EBike, PracticeTest, RealTest, ParkingSpot, PracticeAttempt, PracticeQuestion
+from database_setup import SessionLocal, User, EBike, PracticeTest, RealTest, ParkingSpot, PracticeAttempt, PracticeQuestion, RealTestAttempt
 import forms
 from datetime import datetime
 from forms import PracticeQuizForm
+
 
 
 # Set up Flask app and login manager
@@ -102,37 +103,63 @@ def dashboard():
         total_tests=total_tests
     )
 
-# Route for e-bike management
 @app.route('/ebikes', methods=['GET', 'POST'])
 @login_required
 def ebike_management():
     session = SessionLocal()
+    form = forms.EbikeRegistrationForm()
     ebikes = session.query(EBike).filter_by(owner_id=current_user.id).all()
 
-    if not ebikes:  # If no e-bike is registered
-        if request.method == 'POST':  # Handle the form submission for new e-bike registration
-            # Assuming a form for registering an e-bike exists
-            form = forms.EbikeRegistrationForm()
-            if form.validate_on_submit():
-                new_ebike = EBike(
-                    owner_id=current_user.id,
-                    model=form.model.data,
-                    serial_number=form.serial_number.data,
-                    # Remove registration_date as it's automatically handled by the database
-)
+    # Check if the user has passed the real test
+    passed_test = session.query(RealTestAttempt).filter(
+        RealTestAttempt.user_id == current_user.id,
+        RealTestAttempt.passed == True
+    ).count() > 0
 
-                session.add(new_ebike)
-                session.commit()
-                flash('E-bike registered successfully!', 'success')
-                return redirect(url_for('ebike_management'))
-            return render_template('ebike_management.html', form=form)
-        else:
-            # If the user hasn't registered an e-bike, show the registration form
-            form = forms.EbikeRegistrationForm()
-            return render_template('ebike_management.html', form=form)
+    # Handle e-bike registration
+    if form.validate_on_submit():
+        new_ebike = EBike(
+            owner_id=current_user.id,
+            model=form.model.data,
+            serial_number=form.serial_number.data,
+            colour=form.colour.data
+        )
+        try:
+            session.add(new_ebike)
+            session.commit()
+            flash('E-bike registered successfully!', 'success')
+        except IntegrityError:
+            session.rollback()
+            flash('This serial number is already registered. Please use a unique serial number.', 'danger')
+        return redirect(url_for('ebike_management'))
+
+    # Handle e-bike deletion
+    if request.method == 'POST' and 'delete_ebike_id' in request.form:
+        ebike_id = int(request.form.get('delete_ebike_id'))
+        ebike_to_delete = session.query(EBike).filter_by(id=ebike_id, owner_id=current_user.id).first()
+        if ebike_to_delete:
+            session.delete(ebike_to_delete)
+            session.commit()
+            flash('E-bike deleted successfully!', 'success')
+        return redirect(url_for('ebike_management'))
     
     session.close()
-    return render_template('ebike_management.html', ebikes=ebikes)
+    return render_template('ebike_management.html', ebikes=ebikes, form=form, passed_test=passed_test)
+
+
+    # Handle e-bike deletion
+    if request.method == 'POST' and 'delete_ebike_id' in request.form:
+        ebike_id = int(request.form.get('delete_ebike_id'))
+        ebike_to_delete = session.query(EBike).filter_by(id=ebike_id, owner_id=current_user.id).first()
+        if ebike_to_delete:
+            session.delete(ebike_to_delete)
+            session.commit()
+            flash('E-bike deleted successfully!', 'success')
+        return redirect(url_for('ebike_management'))
+    
+    session.close()
+    return render_template('ebike_management.html', ebikes=ebikes, form=form, passed_test=passed_test)
+
 
 @app.route('/practice', methods=['GET', 'POST'])
 @login_required

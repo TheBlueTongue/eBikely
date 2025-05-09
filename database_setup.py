@@ -9,6 +9,8 @@ engine = create_engine(DATABASE_URL)
 Base = declarative_base()
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
+
 class User(Base, UserMixin):
     __tablename__ = 'users'
 
@@ -30,9 +32,10 @@ class EBike(Base):
     id = Column(Integer, primary_key=True)
     owner_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     model = Column(String(100), nullable=False)
-    is_approved = Column(Boolean, default=False)
     serial_number = Column(String(100), unique=True, nullable=False)
-    registration_date = Column(DateTime, default=datetime.utcnow) 
+    colour = Column(String(50), nullable=False)  # New field for e-bike colour
+    is_approved = Column(Boolean, default=False)
+    registration_date = Column(DateTime, default=datetime.utcnow)
     owner = relationship('User', back_populates='ebikes')
 
 class PracticeTest(Base):
@@ -45,6 +48,7 @@ class PracticeTest(Base):
     
     questions = relationship("PracticeQuestion", back_populates="test", cascade="all, delete-orphan")
     user = relationship("User", back_populates="practice_tests")
+
 
 class PracticeQuestion(Base):
     __tablename__ = 'practice_questions'
@@ -104,6 +108,22 @@ class ParkingSpot(Base):
     reserved_for = Column(Integer, ForeignKey('users.id'))
     
     reserved_user = relationship("User", back_populates="parking_spot")
+
+class RealTestAttempt(Base):
+    __tablename__ = 'real_test_attempts'
+    
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    test_id = Column(Integer, ForeignKey('real_tests.id'), nullable=False)
+    passed = Column(Boolean, nullable=False, default=False)
+    attempt_date = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="real_test_attempts")
+    test = relationship("RealTest", back_populates="attempts")
+
+# Update User and RealTest relationships
+User.real_test_attempts = relationship("RealTestAttempt", back_populates="user", cascade="all, delete-orphan")
+RealTest.attempts = relationship("RealTestAttempt", back_populates="test", cascade="all, delete-orphan")
 
 Base.metadata.create_all(bind=engine)
 
