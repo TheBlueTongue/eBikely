@@ -165,21 +165,31 @@ def real_tests():
 def user_profile():
     return render_template('user_profile.html')
 
-# Practice Quiz Selection Page
 @app.route('/practice', methods=['GET'])
 @login_required
 def practice_selection():
+    # Create a new session for this route
     session = SessionLocal()
-    # Fetch all practice tests
+    
+    # Fetch the current user with their practice attempts
+    user = session.query(User).filter_by(id=current_user.id).first()
     tests = session.query(PracticeTest).all()
-    attempts = {attempt.test_id: attempt for attempt in current_user.practice_attempts}
+    attempts = {attempt.test_id: attempt for attempt in user.practice_attempts}
+    
+    # Close the session
     session.close()
+    
+    # Render the page
     return render_template('practice_selection.html', tests=tests, attempts=attempts)
+
 
 @app.route('/practice/<int:test_id>', methods=['GET', 'POST'])
 @login_required
 def practice_quiz(test_id):
+    # Create a new session for this route
     session = SessionLocal()
+    
+    # Fetch the test
     test = session.query(PracticeTest).filter_by(id=test_id).first()
     if not test:
         flash("Quiz not found.", "danger")
@@ -194,7 +204,9 @@ def practice_quiz(test_id):
     # Populate form choices if GET request
     if request.method == 'GET':
         for question in questions:
-            form.question.choices.append((question.id, f"{question.question_text}\nA. {question.option_a}  B. {question.option_b}  C. {question.option_c}  D. {question.option_d}"))
+            form.question.choices.append(
+                (question.id, f"{question.question_text}\nA. {question.option_a}  B. {question.option_b}  C. {question.option_c}  D. {question.option_d}")
+            )
         session.close()
         return render_template('practice_quiz.html', form=form, test=test)
 
@@ -215,9 +227,10 @@ def practice_quiz(test_id):
         flash(f"You scored {score}/{len(questions)}", "success")
         return redirect(url_for('practice_selection'))
     
-    flash("Please answer all questions.", "danger")
     session.close()
+    flash("Please answer all questions.", "danger")
     return render_template('practice_quiz.html', form=form, test=test)
+
 
 
 # CLI command to populate practice quizzes

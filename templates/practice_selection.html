@@ -1,24 +1,65 @@
 {% extends "base.html" %}
 
-{% block title %}{{ test.name }} - eBikely{% endblock %}
+{% block title %}Practice Tests - eBikely{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
-    <h1 class="text-center text-white mb-4">{{ test.name }}</h1>
-    <form method="POST" action="{{ url_for('practice_quiz', test_id=test.id) }}">
-        {{ form.hidden_tag() }}
-        <div class="card shadow-lg bg-light rounded p-4 mb-4">
-            {% for choice in form.question.choices %}
-            <div class="mb-3">
-                <label class="form-label">{{ choice[1] }}</label>
-                <input type="radio" name="{{ choice[0] }}" value="A"> A
-                <input type="radio" name="{{ choice[0] }}" value="B"> B
-                <input type="radio" name="{{ choice[0] }}" value="C"> C
-                <input type="radio" name="{{ choice[0] }}" value="D"> D
-            </div>
+    <h1 class="text-center text-white mb-4">Practice Tests</h1>
+    <div class="card shadow-lg bg-light rounded p-4">
+        <ul class="list-group">
+            {% for test in tests %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <a href="{{ url_for('practice_quiz', test_id=test.id) }}" class="test-link">{{ test.name }}</a>
+                {% if test.id in attempts %}
+                <span class="badge bg-success">Last Score: {{ attempts[test.id].score }}</span>
+                {% endif %}
+            </li>
             {% endfor %}
-        </div>
-        <button type="submit" class="btn btn-primary btn-block">Submit Quiz</button>
-    </form>
+        </ul>
+    </div>
 </div>
+
+<style>
+    .container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .card {
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(8px);
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .list-group-item {
+        background: rgba(255, 255, 255, 0.12);
+        border: none;
+        margin-bottom: 12px;
+        font-size: 1.1rem;
+        color: #fff;
+        border-radius: 8px;
+    }
+
+    .test-link {
+        color: #00c6ff;
+        font-weight: bold;
+        text-decoration: none;
+    }
+
+    .test-link:hover {
+        color: #0072ff;
+    }
+
+    .badge {
+        background-color: #00c6ff;
+        font-weight: bold;
+    }
+
+    .badge.bg-success {
+        background-color: #28a745;
+    }
+</style>
+
 {% endblock %}
