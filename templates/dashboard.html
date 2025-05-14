@@ -1,90 +1,118 @@
 {% extends 'base.html' %}
 
-{% block title %}Dashboard - E-Bike Management{% endblock %}
+{% block title %}Dashboard - eBikely{% endblock %}
 
 {% block content %}
-<div class="dashboard-container">
-    <div class="dashboard-header">
-        <h1>Welcome, {{ current_user.username }}!</h1>
-        <p class="subtitle">Manage your e-bike and check your status here.</p>
-    </div>
-
-    <div class="stats-grid">
-        <div class="stat-card">
-            <h2>{{ ebike_count }}</h2>
-            <p>Registered E-Bikes</p>
+<div class="auth-container fade-in">
+    <div class="auth-card slide-up">
+        <div class="auth-header">
+            <i class="fas fa-bicycle auth-icon"></i>
+            <h1>Welcome Back, {{ current_user.username }}</h1>
+            <p class="subtitle">Manage your e-bikes, test progress, and parking</p>
         </div>
 
-        <div class="stat-card">
-            <h2>{{ completed_practice_tests }}</h2>
-            <p>Completed Practice Tests</p>
-        </div>
+        <div class="auth-form">
+            <h2>Your E-Bikes</h2>
+            {% if ebikes %}
+                <ul>
+                {% for ebike in ebikes %}
+                    <li>{{ ebike.model }} ({{ ebike.colour }}) - Serial: {{ ebike.serial_number }}</li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p>You have no registered e-bikes. <a href="{{ url_for('ebike_management') }}">Register one now</a>.</p>
+            {% endif %}
 
-        <div class="stat-card">
-            <h2>{{ parking_spots }}</h2>
-            <p>Available Parking Spots</p>
-        </div>
+            <h2>Your Practice Tests</h2>
+            {% if practice_tests %}
+                <ul>
+                {% for test in practice_tests %}
+                    <li>{{ test.name }} - {{ test.description }}</li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p>No practice tests available. <a href="{{ url_for('practice_selection') }}">Take a test now</a>.</p>
+            {% endif %}
 
-        <div class="stat-card">
-            <h2>{{ total_tests }}</h2>
-            <p>Total Real Tests Attempted</p>
+            <h2>Available Parking Spots</h2>
+            <p>{{ available_parking_spots }} spots available</p>
         </div>
-    </div>
-
-    <div class="action-buttons">
-        <div class="action-buttons">
-            <a href="{{ url_for('ebike_management') }}" class="btn btn-primary">Manage E-Bikes</a>
-            <a href="{{ url_for('practice_quiz') }}" class="btn btn-secondary">Take Practice Test</a>
-            <a href="{{ url_for('real_tests') }}" class="btn btn-warning">Take Real Test</a>
-            <a href="{{ url_for('parking_spots') }}" class="btn btn-info">View Parking</a>
-        </div>
-        
     </div>
 </div>
 
 <style>
-.dashboard-container {
-    text-align: center;
+.auth-container {
+    min-height: 100vh;
     padding: 2rem;
-}
-
-.dashboard-header {
-    margin-bottom: 2rem;
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    margin: 2rem 0;
-}
-
-.stat-card {
-    background: #2c3e50;
-    padding: 2rem;
-    border-radius: 10px;
-    color: white;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    transition: transform 0.3s;
-}
-
-.stat-card:hover {
-    transform: translateY(-5px);
-}
-
-.stat-card h2 {
-    font-size: 2.5rem;
-    margin-bottom: 0.5rem;
-}
-
-.action-buttons {
+    background: linear-gradient(135deg, #004e92 0%, #000428 100%);
     display: flex;
+    align-items: center;
     justify-content: center;
-    gap: 1rem;
 }
 
-.action-buttons .btn {
-    padding: 0.75rem 1.5rem;
+.auth-card {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    padding: 2rem;
+    border-radius: 15px;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: white;
+}
+
+.auth-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: #00c6ff;
+}
+
+.auth-header h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.auth-header .subtitle {
+    opacity: 0.9;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.auth-form {
+    color: white;
+}
+
+.auth-form ul {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 1.5rem;
+}
+
+.auth-form li {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 0.8rem 1.2rem;
+    border-radius: 10px;
+    margin-bottom: 0.8rem;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.auth-form a {
+    color: #00c6ff;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.auth-form a:hover {
+    color: #0072ff;
 }
 </style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 {% endblock %}
+

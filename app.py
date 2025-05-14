@@ -2,10 +2,15 @@ from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
-from database_setup import SessionLocal, User, EBike, PracticeTest, RealTest, ParkingSpot, PracticeAttempt, PracticeQuestion, RealTestAttempt
+from database_setup import SessionLocal, User, EBike, PracticeTest, RealTest, ParkingSpot, PracticeAttempt, PracticeQuestion, RealTestAttempt, PracticeTest
 import forms
 from datetime import datetime
 from forms import PracticeQuizForm
+from flask import Flask
+from flask.cli import with_appcontext
+from database_setup import SessionLocal, PracticeTest, PracticeQuestion
+import click
+import random
 
 
 
@@ -75,32 +80,26 @@ def logout():
     flash('Logged out successfully!', 'success')
     return redirect(url_for('login'))
 
-# Route for the dashboard
 @app.route('/dashboard')
 @login_required
 def dashboard():
     session = SessionLocal()
     ebike_count = session.query(EBike).filter_by(owner_id=current_user.id).count()
-    PASSING_SCORE = 80
-
-    completed_practice_tests = (
-        session.query(PracticeAttempt)
-        .filter(
-            PracticeAttempt.user_id == current_user.id,
-            PracticeAttempt.score >= PASSING_SCORE
-        )
-        .count()
-    )
-
+    completed_practice_tests = session.query(PracticeAttempt).filter(
+        PracticeAttempt.user_id == current_user.id,
+        PracticeAttempt.score >= 80
+    ).count()
     total_tests = session.query(RealTest).filter_by(user_id=current_user.id).count()
     available_parking_spots = session.query(ParkingSpot).filter_by(is_available=True).count()
+    practice_tests = session.query(PracticeTest).filter_by(user_id=current_user.id).all()
     session.close()
     return render_template(
         'dashboard.html',
         ebike_count=ebike_count,
         completed_practice_tests=completed_practice_tests,
         available_parking_spots=available_parking_spots,
-        total_tests=total_tests
+        total_tests=total_tests,
+        practice_tests=practice_tests
     )
 
 @app.route('/ebikes', methods=['GET', 'POST'])
@@ -147,57 +146,6 @@ def ebike_management():
     return render_template('ebike_management.html', ebikes=ebikes, form=form, passed_test=passed_test)
 
 
-    # Handle e-bike deletion
-    if request.method == 'POST' and 'delete_ebike_id' in request.form:
-        ebike_id = int(request.form.get('delete_ebike_id'))
-        ebike_to_delete = session.query(EBike).filter_by(id=ebike_id, owner_id=current_user.id).first()
-        if ebike_to_delete:
-            session.delete(ebike_to_delete)
-            session.commit()
-            flash('E-bike deleted successfully!', 'success')
-        return redirect(url_for('ebike_management'))
-    
-    session.close()
-    return render_template('ebike_management.html', ebikes=ebikes, form=form, passed_test=passed_test)
-
-
-@app.route('/practice', methods=['GET', 'POST'])
-@login_required
-def practice_quiz():
-    session = SessionLocal()  # Create a new session
-    questions = session.query(PracticeQuestion).all()  # Fetch questions
-    form = PracticeQuizForm()
-    
-    # Populate the form with questions if it's a GET request
-    if request.method == 'GET':
-        form.question.choices = [
-            (q.id, f"{q.question_text}\nA. {q.option_a}  B. {q.option_b}  C. {q.option_c}  D. {q.option_d}") 
-            for q in questions
-        ]
-        session.close()  # Close the session after GET request
-        return render_template('practice_quiz.html', form=form)
-
-    # Handle the form submission
-    if form.validate_on_submit():
-        score = 0
-        for question in questions:
-            selected_answer = request.form.get(str(question.id))
-            if selected_answer == question.correct_answer:
-                score += 1
-        
-        # Save the attempt
-        attempt = PracticeAttempt(user_id=current_user.id, score=score)
-        session.add(attempt)
-        session.commit()
-        
-        flash(f"You scored {score}/{len(questions)}", "success")
-        session.close()  # Close the session after POST request
-        return redirect(url_for('practice_quiz'))
-    
-    flash("Please select an answer for each question.", "danger")
-    session.close()  # Close the session if form is not submitted
-    return render_template('practice_quiz.html', form=form)
-
 @app.route('/parking_spots')
 @login_required
 def parking_spots():
@@ -216,6 +164,86 @@ def real_tests():
 @login_required
 def user_profile():
     return render_template('user_profile.html')
+
+# Practice Quiz Selection Page
+@app.route('/practice', methods=['GET'])
+@login_required
+def practice_selection():
+    session = SessionLocal()
+    # Fetch all practice tests
+    tests = session.query(PracticeTest).all()
+    attempts = {attempt.test_id: attempt for attempt in current_user.practice_attempts}
+    session.close()
+    return render_template('practice_selection.html', tests=tests, attempts=attempts)
+
+@app.route('/practice/<int:test_id>', methods=['GET', 'POST'])
+@login_required
+def practice_quiz(test_id):
+    session = SessionLocal()
+    test = session.query(PracticeTest).filter_by(id=test_id).first()
+    if not test:
+        flash("Quiz not found.", "danger")
+        session.close()
+        return redirect(url_for('practice_selection'))
+
+    # Get 20 random questions for this test
+    questions = random.sample(test.questions, min(20, len(test.questions)))
+    form = PracticeQuizForm()
+    form.question.choices = []  # Clear existing choices
+
+    # Populate form choices if GET request
+    if request.method == 'GET':
+        for question in questions:
+            form.question.choices.append((question.id, f"{question.question_text}\nA. {question.option_a}  B. {question.option_b}  C. {question.option_c}  D. {question.option_d}"))
+        session.close()
+        return render_template('practice_quiz.html', form=form, test=test)
+
+    # Handle form submission
+    if form.validate_on_submit():
+        score = 0
+        for question in questions:
+            selected_answer = request.form.get(str(question.id))
+            if selected_answer == question.correct_answer:
+                score += 1
+        
+        # Record the attempt
+        attempt = PracticeAttempt(user_id=current_user.id, test_id=test_id, score=score)
+        session.add(attempt)
+        session.commit()
+        session.close()
+
+        flash(f"You scored {score}/{len(questions)}", "success")
+        return redirect(url_for('practice_selection'))
+    
+    flash("Please answer all questions.", "danger")
+    session.close()
+    return render_template('practice_quiz.html', form=form, test=test)
+
+
+# CLI command to populate practice quizzes
+@app.cli.command("populate-practice-questions")
+@with_appcontext
+def populate_practice_questions():
+    session = SessionLocal()
+    quiz_names = ["Basic E-Bike Safety", "Traffic Rules and Signs", "E-Bike Maintenance", "Emergency Handling", "Advanced E-Bike Knowledge"]
+    for quiz_name in quiz_names:
+        test = PracticeTest(name=quiz_name, user_id=1)  # Assuming user_id 1 exists
+        session.add(test)
+        session.commit()
+        for _ in range(30):  # 30 questions per test for variety
+            question = PracticeQuestion(
+                test_id=test.id,
+                question_text="Sample question for {}?".format(quiz_name),
+                option_a="Option A",
+                option_b="Option B",
+                option_c="Option C",
+                option_d="Option D",
+                correct_answer="A"
+            )
+            session.add(question)
+        session.commit()
+    session.close()
+    print("Practice tests and questions populated successfully.")
 
 if __name__ == '__main__':
     app.run(debug=True)

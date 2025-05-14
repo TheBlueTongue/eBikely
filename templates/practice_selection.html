@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}{{ test.name }} - eBikely{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center text-white mb-4">{{ test.name }}</h1>
+    <form method="POST" action="{{ url_for('practice_quiz', test_id=test.id) }}">
+        {{ form.hidden_tag() }}
+        <div class="card shadow-lg bg-light rounded p-4 mb-4">
+            {% for choice in form.question.choices %}
+            <div class="mb-3">
+                <label class="form-label">{{ choice[1] }}</label>
+                <input type="radio" name="{{ choice[0] }}" value="A"> A
+                <input type="radio" name="{{ choice[0] }}" value="B"> B
+                <input type="radio" name="{{ choice[0] }}" value="C"> C
+                <input type="radio" name="{{ choice[0] }}" value="D"> D
+            </div>
+            {% endfor %}
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Submit Quiz</button>
+    </form>
+</div>
+{% endblock %}
