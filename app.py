@@ -5,7 +5,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from database_setup import SessionLocal, User, EBike, PracticeTest, RealTest, ParkingSpot, PracticeAttempt, PracticeQuestion, RealTestAttempt, PracticeTest
 import forms
 from datetime import datetime
-from forms import PracticeQuizForm
 from flask import Flask
 from flask.cli import with_appcontext
 from database_setup import SessionLocal, PracticeTest, PracticeQuestion
@@ -186,67 +185,86 @@ def practice_selection():
 @app.route('/practice/<int:test_id>', methods=['GET', 'POST'])
 @login_required
 def practice_quiz(test_id):
-    # Create a new session for this route
     session = SessionLocal()
-    
-    # Fetch the test
     test = session.query(PracticeTest).filter_by(id=test_id).first()
+
     if not test:
         flash("Quiz not found.", "danger")
         session.close()
         return redirect(url_for('practice_selection'))
 
-    # Get 20 random questions for this test
+    # Randomise and fetch up to 20 questions
     questions = random.sample(test.questions, min(20, len(test.questions)))
-    form = PracticeQuizForm()
-    form.question.choices = []  # Clear existing choices
 
-    # Populate form choices if GET request
-    if request.method == 'GET':
-        for question in questions:
-            form.question.choices.append(
-                (question.id, f"{question.question_text}\nA. {question.option_a}  B. {question.option_b}  C. {question.option_c}  D. {question.option_d}")
-            )
-        session.close()
-        return render_template('practice_quiz.html', form=form, test=test)
-
-    # Handle form submission
-    if form.validate_on_submit():
+    if request.method == 'POST':
         score = 0
+        total = len(questions)
+
         for question in questions:
-            selected_answer = request.form.get(str(question.id))
-            if selected_answer == question.correct_answer:
+            user_answer = request.form.get(str(question.id))
+            if user_answer == question.correct_answer:
                 score += 1
-        
-        # Record the attempt
+
+        # Save the attempt
         attempt = PracticeAttempt(user_id=current_user.id, test_id=test_id, score=score)
         session.add(attempt)
         session.commit()
         session.close()
 
-        flash(f"You scored {score}/{len(questions)}", "success")
+        flash(f"You scored {score}/{total}", "success")
         return redirect(url_for('practice_selection'))
-    
+
     session.close()
-    flash("Please answer all questions.", "danger")
-    return render_template('practice_quiz.html', form=form, test=test)
+    return render_template('practice_quiz.html', test=test, questions=questions)
 
 
 
-# CLI command to populate practice quizzes
 @app.cli.command("populate-practice-questions")
 @with_appcontext
 def populate_practice_questions():
     session = SessionLocal()
-    quiz_names = ["Basic E-Bike Safety", "Traffic Rules and Signs", "E-Bike Maintenance", "Emergency Handling", "Advanced E-Bike Knowledge"]
+
+    quiz_names = [
+        "Basic E-Bike Safety in Australia",
+        "Traffic Rules and Signs for E-Bikes",
+        "E-Bike Maintenance and Emergency Handling"
+    ]
+
+    questions_data = {
+        "Basic E-Bike Safety in Australia": [
+            "What should you always wear when riding an e-bike?",
+            "Is it legal to ride an e-bike without a helmet in Australia?",
+            "What is the maximum speed allowed for e-bikes in Australia?",
+            "How should you position yourself on the road when riding an e-bike?",
+            "What should you do before riding your e-bike for the first time?"
+        ],
+        "Traffic Rules and Signs for E-Bikes": [
+            "What does the red traffic light signify?",
+            "Can you ride on footpaths in Australia with an e-bike?",
+            "What should you do when approaching a pedestrian crossing?",
+            "How should you signal a turn on an e-bike?",
+            "What does a yellow bike lane sign mean?"
+        ],
+        "E-Bike Maintenance and Emergency Handling": [
+            "What is the recommended tire pressure for an e-bike?",
+            "How do you check the brakes on your e-bike?",
+            "What should you do if your e-bike’s battery dies during a ride?",
+            "How often should you clean your e-bike?",
+            "What should you do if you experience a flat tire?"
+        ]
+    }
+
     for quiz_name in quiz_names:
-        test = PracticeTest(name=quiz_name, user_id=1)  # Assuming user_id 1 exists
+        test = PracticeTest(name=quiz_name, user_id=1)
         session.add(test)
         session.commit()
-        for _ in range(30):  # 30 questions per test for variety
+
+        questions = questions_data[quiz_name]
+        for i in range(20):
+            q_text = questions[i % len(questions)]
             question = PracticeQuestion(
                 test_id=test.id,
-                question_text="Sample question for {}?".format(quiz_name),
+                question_text=q_text,
                 option_a="Option A",
                 option_b="Option B",
                 option_c="Option C",
@@ -255,8 +273,11 @@ def populate_practice_questions():
             )
             session.add(question)
         session.commit()
+
     session.close()
     print("Practice tests and questions populated successfully.")
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)

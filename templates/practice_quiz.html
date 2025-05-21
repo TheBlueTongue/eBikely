@@ -1,27 +1,32 @@
 {% extends "base.html" %}
 
-{% block title %}Practice Quizzes - eBikely{% endblock %}
+{% block title %}{{ test.name }} - eBikely{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
-    <h1 class="text-center text-white mb-4">Practice Quizzes</h1>
-    <div class="row">
-        {% for test in tests %}
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card shadow-lg bg-light rounded">
-                <div class="card-body">
-                    <h4 class="card-title">{{ test.name }}</h4>
-                    <p class="card-text">Completion Status: {{ 'Completed' if test.id in attempts else 'Not Attempted' }}</p>
-                    {% if test.id in attempts %}
-                    <p class="card-text">Last Score: {{ attempts[test.id].score }}/20</p>
-                    {% endif %}
-                    <a href="{{ url_for('practice_quiz', test_id=test.id) }}" class="btn btn-primary btn-block">Take Quiz</a>
-                </div>
+    <h1 class="text-center text-white mb-4">{{ test.name }}</h1>
+
+    <form method="POST" action="">
+        <div class="card shadow-lg bg-light rounded p-4">
+            {% for question in questions %}
+            <div class="mb-4">
+                <p><strong>Q{{ loop.index }}:</strong> {{ question.question_text }}</p>
+                {% for opt in ['A', 'B', 'C', 'D'] %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="{{ question.id }}" id="{{ question.id }}{{ opt }}" value="{{ opt }}">
+                        <label class="form-check-label" for="{{ question.id }}{{ opt }}">
+                            {{ question['option_' ~ opt|lower] }}
+                        </label>
+                    </div>
+                {% endfor %}
             </div>
+            <hr>
+            {% endfor %}
         </div>
-        {% endfor %}
-    </div>
+        <button type="submit" class="btn btn-primary mt-4">Submit Quiz</button>
+    </form>
 </div>
 {% endblock %}
+
 
 

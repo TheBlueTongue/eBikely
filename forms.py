@@ -39,6 +39,3 @@ class EbikeRegistrationForm(FlaskForm):
     colour = StringField('E-Bike Colour', validators=[DataRequired()])
     submit = SubmitField('Register E-Bike')
     
-class PracticeQuizForm(FlaskForm):
-    question = RadioField('Select the correct answer:', choices=[], validators=[DataRequired()])
-    submit = SubmitField('Submit')
