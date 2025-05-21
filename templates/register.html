@@ -8,45 +8,111 @@
         <div class="auth-header">
             <i class="fas fa-bicycle auth-icon"></i>
             <h1>Register Your Ride</h1>
-            <p class="subtitle">Create your eBikely account to manage your e-bike access and safety profile</p>
+            <p class="subtitle">Create your eBikely account to manage your ride and safety profile</p>
         </div>
-        
+
         <form method="POST" class="auth-form">
             {{ form.hidden_tag() }}
+
+            <!-- Username -->
             <div class="form-group">
                 <div class="input-group">
                     <i class="fas fa-user input-icon"></i>
                     {{ form.username(class="form-control custom-input", placeholder="Username") }}
                 </div>
             </div>
+
+            <!-- Email -->
             <div class="form-group">
                 <div class="input-group">
                     <i class="fas fa-envelope input-icon"></i>
                     {{ form.email(class="form-control custom-input", placeholder="Email") }}
                 </div>
             </div>
+
+            <!-- Password -->
             <div class="form-group">
                 <div class="input-group">
                     <i class="fas fa-lock input-icon"></i>
                     {{ form.password(class="form-control custom-input", placeholder="Password") }}
                 </div>
             </div>
+
+            <!-- Confirm Password -->
             <div class="form-group">
                 <div class="input-group">
                     <i class="fas fa-lock input-icon"></i>
                     {{ form.confirm_password(class="form-control custom-input", placeholder="Confirm Password") }}
                 </div>
             </div>
+
+            <!-- Role -->
+            <div class="form-group">
+                <label class="form-label text-white">Registering as:</label>
+                <div>
+                    {% for subfield in form.role %}
+                        <label class="text-white" style="margin-right: 1rem;">
+                            {{ subfield() }} {{ subfield.label.text }}
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Teacher Fields -->
+            <div id="teacher-fields" style="display: none;">
+                <div class="form-group">
+                    <div class="input-group">
+                        <i class="fas fa-building input-icon"></i>
+                        {{ form.department(class="form-control custom-input", placeholder="Department") }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Student Fields -->
+            <div id="student-fields" style="display: none;">
+                <div class="form-group">
+                    <div class="input-group">
+                        <i class="fas fa-graduation-cap input-icon"></i>
+                        {{ form.year(class="form-control custom-input") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="input-group">
+                        <i class="fas fa-flag input-icon"></i>
+                        {{ form.house(class="form-control custom-input") }}
+                    </div>
+                </div>
+            </div>
+
             <button type="submit" class="btn btn-primary btn-block pulse">Register</button>
         </form>
-        
+
         <div class="auth-footer">
             <p>Already a member? <a href="{{ url_for('login') }}">Log in here</a></p>
         </div>
     </div>
 </div>
 
-<style> 
+<!-- Role field toggle script -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const roleInputs = document.querySelectorAll('input[name="role"]');
+    const teacherFields = document.getElementById('teacher-fields');
+    const studentFields = document.getElementById('student-fields');
+
+    function toggleFields() {
+        const selected = document.querySelector('input[name="role"]:checked');
+        if (!selected) return;
+        teacherFields.style.display = selected.value === 'teacher' ? 'block' : 'none';
+        studentFields.style.display = selected.value === 'student' ? 'block' : 'none';
+    }
+
+    roleInputs.forEach(input => input.addEventListener('change', toggleFields));
+    toggleFields();
+});
+</script>
+
+<style>
 .auth-container {
     min-height: 100vh;
     padding: 2rem;
@@ -81,7 +147,7 @@
 .auth-header h1 {
     font-size: 2rem;
     margin-bottom: 0.5rem;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 .auth-header .subtitle {
@@ -161,7 +227,7 @@
 @keyframes slideUp {
     from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(30px);
     }
     to {
         opacity: 1;

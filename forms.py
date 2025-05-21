@@ -12,12 +12,25 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Login')
 
-# Form for user registration
 class RegisterForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired(), Length(min=4, max=150)])
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired(), Length(min=6)])
     confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
+    
+    role = RadioField('Registering as', choices=[('student', 'Student'), ('teacher', 'Teacher')], default='student')
+    department = StringField('Department')  # For teachers
+    year = SelectField('Year', choices=[('', 'Select Year')] + [(str(i), str(i)) for i in range(5, 13)])  # For students
+    house = SelectField('House', choices=[
+        ('', 'Select House'),
+        ('Goold', 'Goold'),
+        ('Crane', 'Crane'),
+        ('Hutchinson', 'Hutchinson'),
+        ('Heavey', 'Heavey'),
+        ('Murray', 'Murray'),
+        ('Reville', 'Reville')
+    ])
+    
     submit = SubmitField('Register')
 
 # Form for profile updates

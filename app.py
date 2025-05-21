@@ -33,7 +33,6 @@ def load_user(user_id):
 def welcome():
     return render_template('welcome.html')
 
-# Route for user registration
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     form = forms.RegisterForm()
@@ -42,8 +41,12 @@ def register():
         hashed_password = generate_password_hash(form.password.data, method='pbkdf2:sha256')
         new_user = User(
             username=form.username.data,
-            email=form.email.data, 
-            password=hashed_password
+            email=form.email.data,
+            password=hashed_password,
+            role=form.role.data,
+            department=form.department.data if form.role.data == 'teacher' else None,
+            year=int(form.year.data) if form.role.data == 'student' and form.year.data else None,
+            house=form.house.data if form.role.data == 'student' else None
         )
         session.add(new_user)
         try:
@@ -56,6 +59,7 @@ def register():
         finally:
             session.close()
     return render_template('register.html', form=form)
+
 
 # Route for user login
 @app.route('/login', methods=['GET', 'POST'])

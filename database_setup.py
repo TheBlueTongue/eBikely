@@ -27,6 +27,10 @@ class User(Base, UserMixin):
     real_tests = relationship('RealTest', back_populates='user', cascade="all, delete-orphan")
     practice_attempts = relationship("PracticeAttempt", back_populates="user", cascade="all, delete-orphan")
     parking_spot = relationship("ParkingSpot", back_populates="reserved_user", uselist=False)
+    role = Column(String(10))  # 'student' or 'teacher'
+    department = Column(String(150))  # for teachers
+    year = Column(Integer)  # for students
+    house = Column(String(50))  # for students
 
 class EBike(Base):
     __tablename__ = 'ebikes'
