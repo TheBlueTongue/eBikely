@@ -2,6 +2,8 @@ from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from flask_login import UserMixin
 from datetime import datetime
+from sqlalchemy import Date, Enum
+import enum
 
 DATABASE_URL = 'sqlite:///persistent_database.db'
 
@@ -99,13 +101,19 @@ class PracticeAttempt(Base):
 
     user = relationship("User", back_populates="practice_attempts")
 
+class Area(enum.Enum):
+    OLD_SCHOOL = "Old School"
+    SIDE_GATE = "Side Gate"
+
 class ParkingSpot(Base):
     __tablename__ = 'parking_spots'
     
     id = Column(Integer, primary_key=True)
     number = Column(String(10), nullable=False, unique=True)
+    area = Column(Enum(Area), nullable=False)
     is_available = Column(Boolean, default=True)
     reserved_for = Column(Integer, ForeignKey('users.id'))
+    reservation_date = Column(Date)  # Date of reservation
     
     reserved_user = relationship("User", back_populates="parking_spot")
 

@@ -145,13 +145,52 @@ def ebike_management():
     return render_template('ebike_management.html', ebikes=ebikes, form=form, passed_test=passed_test)
 
 
-@app.route('/parking_spots')
+@app.route('/reserve_spot', methods=['POST'])
 @login_required
-def parking_spots():
+def reserve_spot():
     session = SessionLocal()
-    spots = session.query(ParkingSpot).all()
+    spot_id = request.form.get('spot_id')
+    spot = session.query(ParkingSpot).get(spot_id)
+
+    if not spot or not spot.is_available:
+        flash("This spot is no longer available.", "danger")
+        session.close()
+        return redirect('/parking_spots')
+
+    # Count reserved spots in this area
+    area_spots = session.query(ParkingSpot).filter_by(area=spot.area, is_available=False).count()
+
+    if spot.area == Area.OLD_SCHOOL and area_spots >= 100:
+        flash("Old School parking is full.", "danger")
+    elif spot.area == Area.SIDE_GATE and area_spots >= 50:
+        flash("Side Gate parking is full.", "danger")
+    else:
+        spot.is_available = False
+        spot.reserved_for = current_user.id
+        spot.reservation_date = date.today()
+        session.commit()
+        flash("Spot reserved successfully!", "success")
+
     session.close()
-    return render_template('parking_spots.html', spots=spots)
+    return redirect('/parking_spots')
+
+
+@app.route('/release_spot', methods=['POST'])
+@login_required
+def release_spot():
+    session = SessionLocal()
+    spot_id = request.form.get('spot_id')
+    spot = session.query(ParkingSpot).get(spot_id)
+
+    if spot and spot.reserved_for == current_user.id:
+        spot.is_available = True
+        spot.reserved_for = None
+        spot.reservation_date = None
+        session.commit()
+        flash("Spot released.", "info")
+
+    session.close()
+    return redirect('/parking_spots')
 
 @app.route('/real_tests')
 @login_required

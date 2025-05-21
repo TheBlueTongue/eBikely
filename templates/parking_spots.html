@@ -3,43 +3,43 @@
 {% block title %}Parking Spots - eBikely{% endblock %}
 
 {% block content %}
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parking Spots</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 text-gray-900">
-    <div class="container mx-auto p-6">
-        <h1 class="text-4xl font-bold mb-6">Parking Spots</h1>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {% for spot in spots %}
-                <div class="p-6 bg-white rounded-2xl shadow-md flex flex-col justify-between">
-                    <h2 class="text-xl font-semibold mb-2">Spot {{ spot.number }}</h2>
-                    <p class="mb-4">
-                        {% if spot.is_available %}
-                            <span class="text-green-600 font-bold">Available</span>
-                        {% else %}
-                            Reserved for <span class="text-blue-600 font-bold">{{ spot.reserved_user.username }}</span>
-                        {% endif %}
-                    </p>
+<div class="container mx-auto p-6">
+    <h1 class="text-4xl font-bold mb-6">Parking Spots</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for spot in spots %}
+            <div class="p-6 bg-white rounded-2xl shadow-md flex flex-col justify-between">
+                <h2 class="text-xl font-semibold mb-2">Spot {{ spot.number }}</h2>
+                <p class="text-sm text-gray-600 mb-1">Area: <strong>{{ spot.area.value }}</strong></p>
+                
+                {% if spot.reservation_date %}
+                    <p class="text-sm text-gray-500 mb-2">Reserved on: {{ spot.reservation_date }}</p>
+                {% endif %}
+
+                <p class="mb-4">
                     {% if spot.is_available %}
-                        <form method="POST" action="/reserve_spot">
-                            <input type="hidden" name="spot_id" value="{{ spot.id }}">
-                            <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700">Reserve Spot</button>
-                        </form>
+                        <span class="text-green-600 font-bold">Available</span>
                     {% else %}
+                        Reserved for <span class="text-blue-600 font-bold">{{ spot.reserved_user.username }}</span>
+                    {% endif %}
+                </p>
+
+                {% if spot.is_available %}
+                    <form method="POST" action="/reserve_spot">
+                        <input type="hidden" name="spot_id" value="{{ spot.id }}">
+                        <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700">Reserve Spot</button>
+                    </form>
+                {% else %}
+                    {% if spot.reserved_user.id == current_user.id %}
                         <form method="POST" action="/release_spot">
                             <input type="hidden" name="spot_id" value="{{ spot.id }}">
                             <button type="submit" class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700">Release Spot</button>
                         </form>
                     {% endif %}
-                </div>
-            {% endfor %}
-        </div>
+                {% endif %}
+            </div>
+        {% endfor %}
     </div>
-</body>
-</html>
-    
-    {% endblock %}
+</div>
+{% endblock %}
+

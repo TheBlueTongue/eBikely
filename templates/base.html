@@ -29,7 +29,8 @@
                             <a class="nav-link {% if request.endpoint == 'ebike_management' %}active{% endif %}" href="{{ url_for('ebike_management') }}">Manage E-Bikes</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'parking_spots' %}active{% endif %}" href="{{ url_for('parking_spots') }}">Parking Spots</a>
+                            <a class="nav-link {% if request.endpoint == 'reserve_spot' %}active{% endif %}" href="{{ url_for('reserve_spot') }}">Parking Spots</a>
+
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint == 'practice_selection' %}active{% endif %}" href="{{ url_for('practice_selection') }}">Practice Tests</a>
