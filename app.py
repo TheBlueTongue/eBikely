@@ -221,7 +221,12 @@ def parking_spots():
         spots_by_area[spot.area].append(spot)
 
     session.close()
-    return render_template("parking_spots.html", spots_by_area=spots_by_area, selected_date=selected_date)
+    return render_template(
+    "parking_spots.html",
+    spots_by_area=spots_by_area,
+    selected_date=selected_date,
+    timedelta=timedelta  # This makes timedelta usable in the template
+)
 
 
 
