@@ -1,45 +1,150 @@
 {% extends 'base.html' %}
 
-{% block title %}Parking Spots - eBikely{% endblock %}
-
 {% block content %}
-<div class="container mx-auto p-6">
-    <h1 class="text-4xl font-bold mb-6">Parking Spots</h1>
-    
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% for spot in spots %}
-            <div class="p-6 bg-white rounded-2xl shadow-md flex flex-col justify-between">
-                <h2 class="text-xl font-semibold mb-2">Spot {{ spot.number }}</h2>
-                <p class="text-sm text-gray-600 mb-1">Area: <strong>{{ spot.area.value }}</strong></p>
-                
-                {% if spot.reservation_date %}
-                    <p class="text-sm text-gray-500 mb-2">Reserved on: {{ spot.reservation_date }}</p>
-                {% endif %}
+<div class="parking-container">
+  <h1>Reserve a Parking Spot</h1>
 
-                <p class="mb-4">
-                    {% if spot.is_available %}
-                        <span class="text-green-600 font-bold">Available</span>
-                    {% else %}
-                        Reserved for <span class="text-blue-600 font-bold">{{ spot.reserved_user.username }}</span>
-                    {% endif %}
-                </p>
+  <!-- Date Selector -->
+  <div class="date-selector">
+    <a href="?date={{ (selected_date - timedelta(days=1)).isoformat() }}">&#8592;</a>
+    <span>{{ selected_date.strftime("%A, %d %B %Y") }}</span>
+    <a href="?date={{ (selected_date + timedelta(days=1)).isoformat() }}">&#8594;</a>
+  </div>
 
-                {% if spot.is_available %}
-                    <form method="POST" action="/reserve_spot">
-                        <input type="hidden" name="spot_id" value="{{ spot.id }}">
-                        <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700">Reserve Spot</button>
-                    </form>
-                {% else %}
-                    {% if spot.reserved_user.id == current_user.id %}
-                        <form method="POST" action="/release_spot">
-                            <input type="hidden" name="spot_id" value="{{ spot.id }}">
-                            <button type="submit" class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700">Release Spot</button>
-                        </form>
-                    {% endif %}
-                {% endif %}
-            </div>
-        {% endfor %}
+  <div class="map-layout">
+    <!-- Oval -->
+    <div class="oval">Oval</div>
+
+    <!-- Top Gate -->
+    <div class="top-gate">Main Gate</div>
+
+    <!-- Old School Parking -->
+    <div class="old-school-parking">
+      {% for spot in spots_by_area['Old School'] %}
+        <div class="spot {{ 'available' if spot.is_available else 'reserved' }}">
+          {{ spot.number }}
+          {% if spot.is_available %}
+            <form method="POST" action="/reserve_spot">
+              <input type="hidden" name="spot_id" value="{{ spot.id }}">
+              <input type="hidden" name="selected_date" value="{{ selected_date }}">
+              <button type="submit">Reserve</button>
+            </form>
+          {% elif spot.reserved_user.id == current_user.id %}
+            <form method="POST" action="/release_spot">
+              <input type="hidden" name="spot_id" value="{{ spot.id }}">
+              <input type="hidden" name="selected_date" value="{{ selected_date }}">
+              <button type="submit">Release</button>
+            </form>
+          {% endif %}
+        </div>
+      {% endfor %}
     </div>
+
+    <!-- Building -->
+    <div class="building">Building</div>
+
+    <!-- Side Gate Parking -->
+    <div class="side-gate-parking">
+      {% for spot in spots_by_area['Side Gate'] %}
+        <div class="spot {{ 'available' if spot.is_available else 'reserved' }}">
+          {{ spot.number }}
+          {% if spot.is_available %}
+            <form method="POST" action="/reserve_spot">
+              <input type="hidden" name="spot_id" value="{{ spot.id }}">
+              <input type="hidden" name="selected_date" value="{{ selected_date }}">
+              <button type="submit">Reserve</button>
+            </form>
+          {% elif spot.reserved_user.id == current_user.id %}
+            <form method="POST" action="/release_spot">
+              <input type="hidden" name="spot_id" value="{{ spot.id }}">
+              <input type="hidden" name="selected_date" value="{{ selected_date }}">
+              <button type="submit">Release</button>
+            </form>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Side Gate -->
+    <div class="side-gate">Side Gate</div>
+  </div>
 </div>
+
+<style>
+.parking-container {
+  padding: 2rem;
+  background: #000428;
+  color: white;
+}
+
+.date-selector {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-size: 1.2rem;
+}
+
+.map-layout {
+  display: grid;
+  grid-template-areas:
+    "oval oval oval"
+    "building oldschool gate"
+    "building sidegate sidegate";
+  grid-gap: 1rem;
+  align-items: center;
+}
+
+.oval {
+  grid-area: oval;
+  background: green;
+  padding: 1rem;
+  text-align: center;
+}
+
+.building {
+  grid-area: building;
+  background: #ff6600;
+  padding: 1rem;
+  text-align: center;
+}
+
+.top-gate {
+  grid-area: gate;
+  background: limegreen;
+  padding: 1rem;
+  text-align: center;
+}
+
+.side-gate {
+  grid-area: sidegate;
+  background: limegreen;
+  padding: 1rem;
+  text-align: center;
+}
+
+.old-school-parking,
+.side-gate-parking {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.spot {
+  padding: 0.5rem;
+  border-radius: 5px;
+  text-align: center;
+  width: 70px;
+}
+
+.spot.available {
+  background-color: #0072ff;
+}
+
+.spot.reserved {
+  background-color: #ff4e50;
+}
+</style>
 {% endblock %}
+
+
+
 

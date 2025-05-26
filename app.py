@@ -7,9 +7,14 @@ import forms
 from datetime import datetime
 from flask import Flask
 from flask.cli import with_appcontext
-from database_setup import SessionLocal, PracticeTest, PracticeQuestion
+from database_setup import SessionLocal, PracticeTest, PracticeQuestion, Area
 import click
 import random
+from collections import defaultdict
+from flask_login import login_required, current_user
+from datetime import datetime, date, timedelta
+
+
 
 
 
@@ -154,29 +159,25 @@ def ebike_management():
 def reserve_spot():
     session = SessionLocal()
     spot_id = request.form.get('spot_id')
+    selected_date = request.form.get('selected_date', date.today().isoformat())
+    reservation_date = datetime.strptime(selected_date, "%Y-%m-%d").date()
+
     spot = session.query(ParkingSpot).get(spot_id)
 
-    if not spot or not spot.is_available:
-        flash("This spot is no longer available.", "danger")
+    if not spot or (spot.reservation_date == reservation_date and not spot.is_available):
+        flash("This spot is no longer available for that date.", "danger")
         session.close()
-        return redirect('/parking_spots')
+        return redirect(f'/parking_spots?date={selected_date}')
 
-    # Count reserved spots in this area
-    area_spots = session.query(ParkingSpot).filter_by(area=spot.area, is_available=False).count()
-
-    if spot.area == Area.OLD_SCHOOL and area_spots >= 100:
-        flash("Old School parking is full.", "danger")
-    elif spot.area == Area.SIDE_GATE and area_spots >= 50:
-        flash("Side Gate parking is full.", "danger")
-    else:
-        spot.is_available = False
-        spot.reserved_for = current_user.id
-        spot.reservation_date = date.today()
-        session.commit()
-        flash("Spot reserved successfully!", "success")
+    spot.is_available = False
+    spot.reserved_for = current_user.id
+    spot.reservation_date = reservation_date
+    session.commit()
+    flash("Spot reserved successfully!", "success")
 
     session.close()
-    return redirect('/parking_spots')
+    return redirect(f'/parking_spots?date={selected_date}')
+
 
 
 @app.route('/release_spot', methods=['POST'])
@@ -184,6 +185,8 @@ def reserve_spot():
 def release_spot():
     session = SessionLocal()
     spot_id = request.form.get('spot_id')
+    selected_date = request.form.get('selected_date', date.today().isoformat())
+
     spot = session.query(ParkingSpot).get(spot_id)
 
     if spot and spot.reserved_for == current_user.id:
@@ -194,7 +197,46 @@ def release_spot():
         flash("Spot released.", "info")
 
     session.close()
-    return redirect('/parking_spots')
+    return redirect(f'/parking_spots?date={selected_date}')
+
+
+@app.route("/parking_spots", methods=["GET"])
+@login_required
+def parking_spots():
+    session = SessionLocal()
+    
+    # Handle date from query param or use today
+    selected_date_str = request.args.get("date")
+    selected_date = datetime.strptime(selected_date_str, "%Y-%m-%d").date() if selected_date_str else date.today()
+
+    spots = session.query(ParkingSpot).all()
+
+    # Group by area and status on selected date
+    spots_by_area = defaultdict(list)
+    for spot in spots:
+        # Show as available if not reserved or reserved on another date
+        if spot.reservation_date != selected_date:
+            spot.is_available = True
+            spot.reserved_for = None
+        spots_by_area[spot.area].append(spot)
+
+    session.close()
+    return render_template("parking_spots.html", spots_by_area=spots_by_area, selected_date=selected_date)
+
+
+
+@app.route('/seed_parking_spots')
+def seed_parking_spots():
+    session = SessionLocal()
+    for i in range(1, 101):
+        spot = ParkingSpot(number=f"OS-{i}", area=Area.OLD_SCHOOL)
+        session.add(spot)
+    for i in range(1, 51):
+        spot = ParkingSpot(number=f"SG-{i}", area=Area.SIDE_GATE)
+        session.add(spot)
+    session.commit()
+    session.close()
+    return "Seeded parking spots!"
 
 @app.route('/real_tests')
 @login_required
