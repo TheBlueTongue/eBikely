@@ -13,7 +13,8 @@ import random
 from collections import defaultdict
 from flask_login import login_required, current_user
 from datetime import datetime, date, timedelta
-
+import os
+import pandas as pd
 
 
 
@@ -204,29 +205,34 @@ def release_spot():
 @login_required
 def parking_spots():
     session = SessionLocal()
-    
-    # Handle date from query param or use today
+
     selected_date_str = request.args.get("date")
     selected_date = datetime.strptime(selected_date_str, "%Y-%m-%d").date() if selected_date_str else date.today()
 
     spots = session.query(ParkingSpot).all()
 
-    # Group by area and status on selected date
-    spots_by_area = defaultdict(list)
-    for spot in spots:
-        # Show as available if not reserved or reserved on another date
-        if spot.reservation_date != selected_date:
-            spot.is_available = True
-            spot.reserved_for = None
-        spots_by_area[spot.area].append(spot)
+    spots_by_number = {spot.number: spot for spot in spots}
+
+    # Get the absolute path to the current file's directory
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Build the full path to the Excel file
+    map_path = os.path.join(base_dir, "Map.xlsx")
+
+    # Read the layout from the Excel file
+    layout_df = pd.read_excel(map_path, header=None).iloc[0:30, 0:42].fillna("").astype(str)
+    layout_grid = layout_df.values.tolist()
 
     session.close()
     return render_template(
-    "parking_spots.html",
-    spots_by_area=spots_by_area,
-    selected_date=selected_date,
-    timedelta=timedelta  # This makes timedelta usable in the template
-)
+        "parking_spots.html",
+        layout_grid=layout_grid,
+        spots_by_number=spots_by_number,
+        selected_date=selected_date,
+        timedelta=timedelta
+    )
+
+
 
 
 
