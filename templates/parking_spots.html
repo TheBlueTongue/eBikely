@@ -17,28 +17,39 @@
         {% for cell in row %}
           {% set spot = spots_by_number.get(cell) %}
           {% if cell and spot %}
-            <form method="POST" action="{{ '/reserve_spot' if spot.is_available else '/release_spot' }}">
-              <input type="hidden" name="spot_id" value="{{ spot.id }}">
-              <input type="hidden" name="selected_date" value="{{ selected_date }}">
-              <button
-                class="spot {{ 'available' if spot.is_available else 'reserved' }}"
-                title="Spot {{ spot.number }}"
-                {% if not spot.is_available and spot.reserved_user and spot.reserved_user.id != current_user.id %}disabled{% endif %}
-              >
-                {{ spot.number }}
-                {% if not spot.is_available %}
-                  <div class="x">X</div>
-                {% endif %}
-              </button>
-            </form>
+            <div class="spot-wrapper"> <!-- ✅ New wrapper -->
+              <form method="POST" action="{{ '/reserve_spot' if spot.is_available else '/release_spot' }}">
+                <input type="hidden" name="spot_id" value="{{ spot.id }}">
+                <input type="hidden" name="selected_date" value="{{ selected_date }}">
+                <button
+                  class="spot {{ 'available' if spot.is_available else 'reserved' }}"
+                  title="Spot {{ spot.number }}"
+                  {% if not spot.is_available and spot.reserved_user and spot.reserved_user.id != current_user.id %}disabled{% endif %}
+                >
+                  {{ spot.number }}
+                  {% if not spot.is_available %}
+                    <div class="x">X</div>
+                  {% endif %}
+                </button>
+              </form>
+            </div>
           {% else %}
-            <div class="spot empty"></div>
+            {% if cell.lower() == "building" %}
+              <div class="spot building"></div>
+            {% elif cell.lower() == "fence" %}
+              <div class="spot fence"></div>
+            {% elif cell.lower() == "path" %}
+              <div class="spot path"></div>
+            {% else %}
+              <div class="spot empty"></div>
+            {% endif %}
           {% endif %}
         {% endfor %}
       </div>
     {% endfor %}
   </div>
 </div>
+
 
 <style>
 body {
@@ -48,9 +59,9 @@ body {
 }
 
 .parking-container {
-  padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
+ 
+  max-width: none;
+  margin: 0;
   color: #222;
 }
 
@@ -77,13 +88,14 @@ h1 {
 .spot-grid-map {
   display: grid;
   grid-template-rows: repeat(26, 40px);
-  gap: 2px;
+  gap: 0px;
 }
 
 .grid-row {
   display: grid;
   grid-template-columns: repeat(34, 40px);
-  gap: 2px;
+  
+  gap: 0px;
 }
 
 .spot {
@@ -136,5 +148,58 @@ h1 {
   color: white;
   pointer-events: none;
 }
+
+.spot.building {
+  background-color: #929292;  /* Bootstrap Red */
+  color: white;
+  text-align: center;
+  font-size: 0.6rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 0;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.spot.fence {
+  background-color: #545454;  /* Bootstrap Gray */
+  color: white;
+  text-align: center;
+  font-size: 0.6rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 0;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.spot.path {
+  background-color: #b4b4b4;  /* Bootstrap Orange */
+  color: white;
+  text-align: center;
+  font-size: 0.6rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 0;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.spot-wrapper {
+  padding: 2px; /* Creates gap around interactive spots only */
+  box-sizing: border-box;
+}
+
+/* Override form styling inside wrapper */
+.spot-wrapper form {
+  margin: 0;
+}
+
 </style>
 {% endblock %}

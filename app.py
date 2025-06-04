@@ -15,6 +15,7 @@ from flask_login import login_required, current_user
 from datetime import datetime, date, timedelta
 import os
 import pandas as pd
+from sqlalchemy.orm import joinedload
 
 
 
@@ -163,7 +164,10 @@ def reserve_spot():
     selected_date = request.form.get('selected_date', date.today().isoformat())
     reservation_date = datetime.strptime(selected_date, "%Y-%m-%d").date()
 
-    spot = session.query(ParkingSpot).get(spot_id)
+    spot = session.query(ParkingSpot)\
+    .options(joinedload(ParkingSpot.reserved_user))\
+    .filter_by(id=spot_id)\
+    .first()
 
     if not spot or (spot.reservation_date == reservation_date and not spot.is_available):
         flash("This spot is no longer available for that date.", "danger")
@@ -209,21 +213,18 @@ def parking_spots():
     selected_date_str = request.args.get("date")
     selected_date = datetime.strptime(selected_date_str, "%Y-%m-%d").date() if selected_date_str else date.today()
 
-    spots = session.query(ParkingSpot).all()
+    # Eager load reserved_user to avoid DetachedInstanceError
+    spots = session.query(ParkingSpot).options(joinedload(ParkingSpot.reserved_user)).all()
 
     spots_by_number = {spot.number: spot for spot in spots}
 
-    # Get the absolute path to the current file's directory
     base_dir = os.path.dirname(os.path.abspath(__file__))
-
-    # Build the full path to the Excel file
     map_path = os.path.join(base_dir, "Map.xlsx")
-
-    # Read the layout from the Excel file
     layout_df = pd.read_excel(map_path, header=None).iloc[0:30, 0:42].fillna("").astype(str)
     layout_grid = layout_df.values.tolist()
 
     session.close()
+
     return render_template(
         "parking_spots.html",
         layout_grid=layout_grid,
