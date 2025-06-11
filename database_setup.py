@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime, ForeignKey, Text
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from flask_login import UserMixin
 from datetime import datetime
@@ -46,29 +46,35 @@ class EBike(Base):
 
 class PracticeTest(Base):
     __tablename__ = 'practice_tests'
-    
+
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     name = Column(String(100), nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    
-    questions = relationship("PracticeQuestion", back_populates="test", cascade="all, delete-orphan")
-    user = relationship("User", back_populates="practice_tests")
+    user_id = Column(Integer, ForeignKey('users.id'))  # <-- This line fixes the problem
+
+    user = relationship('User', back_populates='practice_tests')  # <-- Define this side of the relationship
+    questions = relationship('PracticeQuestion', back_populates='test', cascade="all, delete-orphan")
 
 
 class PracticeQuestion(Base):
     __tablename__ = 'practice_questions'
-
     id = Column(Integer, primary_key=True)
     test_id = Column(Integer, ForeignKey('practice_tests.id'), nullable=False)
-    question_text = Column(String, nullable=False)
-    correct_answer = Column(String, nullable=False)
-    option_a = Column(String, nullable=False)
-    option_b = Column(String, nullable=False)
-    option_c = Column(String, nullable=False)
-    option_d = Column(String, nullable=False)
-    
-    test = relationship("PracticeTest", back_populates="questions")
+    question = Column(Text, nullable=False)
+    options = Column(Text, nullable=False)  # Store options as a comma-separated string
+    correct_answer = Column(String(100), nullable=False)
+
+    test = relationship('PracticeTest', back_populates='questions')
+
+class PracticeAttempt(Base):
+    __tablename__ = 'practice_attempts'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    test_id = Column(Integer, ForeignKey('practice_tests.id'), nullable=False)
+    score = Column(Integer, nullable=False)
+    attempt_date = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship('User', back_populates='practice_attempts')
+
 
 class RealTest(Base):
     __tablename__ = 'real_tests'
@@ -95,15 +101,6 @@ class RealTestQuestion(Base):
     
     test = relationship("RealTest", back_populates="questions")
 
-class PracticeAttempt(Base):
-    __tablename__ = 'practice_attempts'
-
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    score = Column(Integer, nullable=False)
-    attempt_date = Column(DateTime, default=datetime.utcnow)
-
-    user = relationship("User", back_populates="practice_attempts")
 
 class Area(enum.Enum):
     OLD_SCHOOL = "Old School"

@@ -16,7 +16,9 @@ from datetime import datetime, date, timedelta
 import os
 import pandas as pd
 from sqlalchemy.orm import joinedload
-
+from flask import Flask, render_template, request, redirect, url_for, flash, session as flask_session
+from flask_login import login_required, current_user
+import random
 
 
 
@@ -264,20 +266,13 @@ def user_profile():
 @app.route('/practice', methods=['GET'])
 @login_required
 def practice_selection():
-    # Create a new session for this route
     session = SessionLocal()
-    
-    # Fetch the current user with their practice attempts
     user = session.query(User).filter_by(id=current_user.id).first()
     tests = session.query(PracticeTest).all()
-    attempts = {attempt.test_id: attempt for attempt in user.practice_attempts}
-    
-    # Close the session
-    session.close()
-    
-    # Render the page
-    return render_template('practice_selection.html', tests=tests, attempts=attempts)
 
+    attempts = {attempt.test_id: attempt for attempt in user.practice_attempts}
+    session.close()
+    return render_template('practice_selection.html', tests=tests, attempts=attempts)
 
 @app.route('/practice/<int:test_id>', methods=['GET', 'POST'])
 @login_required
@@ -290,30 +285,62 @@ def practice_quiz(test_id):
         session.close()
         return redirect(url_for('practice_selection'))
 
-    # Randomise and fetch up to 20 questions
-    questions = random.sample(test.questions, min(20, len(test.questions)))
-
     if request.method == 'POST':
+        questions = session.query(PracticeQuestion).filter_by(test_id=test_id).all()
+        question_dict = {q.id: q for q in questions}
         score = 0
-        total = len(questions)
+        feedback = {}
 
-        for question in questions:
-            user_answer = request.form.get(str(question.id))
-            if user_answer == question.correct_answer:
+        for question_id_str, user_answer in request.form.items():
+            if question_id_str == 'submit':
+                continue
+            question_id = int(question_id_str)
+            question = question_dict.get(question_id)
+            if not question:
+                continue
+            correct = user_answer == question.correct_answer
+            if correct:
                 score += 1
+            option_labels = ['A', 'B', 'C', 'D']
+            parsed_options = question.options.split(',')
 
-        # Save the attempt
+            feedback[question.id] = {
+                'question_text': question.question,
+                'user_answer': user_answer,
+                'correct_answer': question.correct_answer,
+                'is_correct': correct,
+                'options': {label: text for label, text in zip(option_labels, parsed_options)}
+            }
+        
         attempt = PracticeAttempt(user_id=current_user.id, test_id=test_id, score=score)
         session.add(attempt)
         session.commit()
         session.close()
 
-        flash(f"You scored {score}/{total}", "success")
-        return redirect(url_for('practice_selection'))
+        flask_session['practice_feedback'] = feedback
+        flask_session['practice_score'] = score
+        return redirect(url_for('practice_results', test_id=test_id))
+
+    all_questions = test.questions
+    questions = random.sample(all_questions, min(20, len(all_questions)))
+
+    # Add parsed options to each question
+    for q in questions:
+        q.parsed_options = q.options.split(",")
 
     session.close()
     return render_template('practice_quiz.html', test=test, questions=questions)
 
+@app.route('/practice/<int:test_id>/results')
+@login_required
+def practice_results(test_id):
+    feedback = flask_session.pop('practice_feedback', None)
+    score = flask_session.pop('practice_score', None)
+    if not feedback or score is None:
+        flash("No quiz results to display.", "warning")
+        return redirect(url_for('practice_selection'))
+
+    return render_template('practice_results.html', test_id=test_id, feedback=feedback, score=score)
 
 
 @app.cli.command("populate-practice-questions")
@@ -321,61 +348,114 @@ def practice_quiz(test_id):
 def populate_practice_questions():
     session = SessionLocal()
 
-    quiz_names = [
-        "Basic E-Bike Safety in Australia",
-        "Traffic Rules and Signs for E-Bikes",
-        "E-Bike Maintenance and Emergency Handling"
-    ]
-
-    questions_data = {
-        "Basic E-Bike Safety in Australia": [
-            "What should you always wear when riding an e-bike?",
-            "Is it legal to ride an e-bike without a helmet in Australia?",
-            "What is the maximum speed allowed for e-bikes in Australia?",
-            "How should you position yourself on the road when riding an e-bike?",
-            "What should you do before riding your e-bike for the first time?"
+    quiz_data = {
+        "Practice Test 1": [
+            {
+                "question": "What should you always wear when riding an e-bike?",
+                "options": ["Helmet", "Scarf", "Sunglasses", "Backpack"],
+                "correct": "Helmet"
+            },
+            {
+                "question": "Is it legal to ride an e-bike without a helmet in Australia?",
+                "options": ["Yes", "Only in parks", "No", "Only on private property"],
+                "correct": "No"
+            },
+            {
+                "question": "What is the maximum speed allowed for e-bikes in Australia?",
+                "options": ["25 km/h", "40 km/h", "15 km/h", "35 km/h"],
+                "correct": "25 km/h"
+            },
+            {
+                "question": "How should you position yourself on the road when riding an e-bike?",
+                "options": ["To the far left", "In the middle of the lane", "On the footpath", "Against traffic"],
+                "correct": "To the far left"
+            },
+            {
+                "question": "What should you do before riding your e-bike for the first time?",
+                "options": ["Check brakes and battery", "Start pedaling", "Put on gloves", "Adjust mirrors"],
+                "correct": "Check brakes and battery"
+            },
         ],
-        "Traffic Rules and Signs for E-Bikes": [
-            "What does the red traffic light signify?",
-            "Can you ride on footpaths in Australia with an e-bike?",
-            "What should you do when approaching a pedestrian crossing?",
-            "How should you signal a turn on an e-bike?",
-            "What does a yellow bike lane sign mean?"
+        "Practice Test 2": [
+            {
+                "question": "What does the red traffic light signify?",
+                "options": ["Go", "Slow down", "Stop", "Yield"],
+                "correct": "Stop"
+            },
+            {
+                "question": "Can you ride on footpaths in Australia with an e-bike?",
+                "options": ["Always", "Only under 12 or with an adult", "Never", "Only in rural areas"],
+                "correct": "Only under 12 or with an adult"
+            },
+            {
+                "question": "What should you do when approaching a pedestrian crossing?",
+                "options": ["Speed up", "Sound the horn", "Stop for pedestrians", "Weave around them"],
+                "correct": "Stop for pedestrians"
+            },
+            {
+                "question": "How should you signal a turn on an e-bike?",
+                "options": ["Shout", "Use hand signals", "Use blinkers", "Tap your helmet"],
+                "correct": "Use hand signals"
+            },
+            {
+                "question": "What does a yellow bike lane sign mean?",
+                "options": ["Bike lane ends", "Shared path ahead", "Bike lane", "No bikes allowed"],
+                "correct": "Bike lane"
+            },
         ],
-        "E-Bike Maintenance and Emergency Handling": [
-            "What is the recommended tire pressure for an e-bike?",
-            "How do you check the brakes on your e-bike?",
-            "What should you do if your e-bike’s battery dies during a ride?",
-            "How often should you clean your e-bike?",
-            "What should you do if you experience a flat tire?"
+        "Practice Test 3": [
+            {
+                "question": "What is the recommended tire pressure for an e-bike?",
+                "options": ["As per manufacturer guidelines", "30 PSI", "50 PSI", "Any pressure"],
+                "correct": "As per manufacturer guidelines"
+            },
+            {
+                "question": "How do you check the brakes on your e-bike?",
+                "options": ["Squeeze levers and check resistance", "Kick the tire", "Look at the pads only", "Ride fast and stop suddenly"],
+                "correct": "Squeeze levers and check resistance"
+            },
+            {
+                "question": "What should you do if your e-bike’s battery dies during a ride?",
+                "options": ["Pedal manually", "Call a tow truck", "Leave it and walk home", "Push it to a shop"],
+                "correct": "Pedal manually"
+            },
+            {
+                "question": "How often should you clean your e-bike?",
+                "options": ["Every week", "Only when muddy", "Every ride", "Regularly depending on use"],
+                "correct": "Regularly depending on use"
+            },
+            {
+                "question": "What should you do if you experience a flat tire?",
+                "options": ["Replace or patch it", "Pump more air", "Keep riding", "Ignore it"],
+                "correct": "Replace or patch it"
+            },
         ]
     }
 
-    for quiz_name in quiz_names:
+    for quiz_name, question_list in quiz_data.items():
         test = PracticeTest(name=quiz_name, user_id=1)
         session.add(test)
         session.commit()
 
-        questions = questions_data[quiz_name]
-        for i in range(20):
-            q_text = questions[i % len(questions)]
+        for i in range(20):  # Generate 20 questions by cycling through the custom ones
+            q_data = question_list[i % len(question_list)]
+
             question = PracticeQuestion(
                 test_id=test.id,
-                question_text=q_text,
-                option_a="Option A",
-                option_b="Option B",
-                option_c="Option C",
-                option_d="Option D",
-                correct_answer="A"
+                question=q_data["question"],
+                options=",".join(q_data["options"]),
+                correct_answer=q_data["correct"]
             )
             session.add(question)
+
         session.commit()
 
     session.close()
-    print("Practice tests and questions populated successfully.")
-
+    print("Practice tests and questions with custom answers populated successfully.")
 
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+
 
