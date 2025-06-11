@@ -11,15 +11,22 @@
       <div class="card mb-3 {% if result.is_correct %}border-success{% else %}border-danger{% endif %}">
         <div class="card-body">
           <h5 class="card-title">{{ result.question_text }}</h5>
-          <ul class="list-group list-group-flush">
-            {% for label, option in result.options.items() %}
-              <li class="list-group-item
-                         {% if label == result.correct_answer %}list-group-item-success{% endif %}
-                         {% if label == result.user_answer and not result.is_correct %}list-group-item-danger{% endif %}">
-                <strong>{{ label }}:</strong> {{ option }}
-              </li>
-            {% endfor %}
-          </ul>
+            <ul class="list-group list-group-flush">
+              {% for label, option in result.options.items() %}
+                <li class="list-group-item
+                          {% if label == result.correct_answer %}list-group-item-success{% endif %}
+                          {% if label == result.user_answer and not result.is_correct %}list-group-item-danger{% endif %}">
+                  <strong>{{ label }}:</strong> {{ option }}
+                </li>
+              {% endfor %}
+            </ul>
+
+            {% if not result.is_correct %}
+              <p class="mt-2 mb-0 text-danger">
+                <strong>Correct answer:</strong> {{ result.correct_answer }} — {{ result.options[result.correct_answer] }}
+              </p>
+            {% endif %}
+
         </div>
       </div>
     {% endfor %}
