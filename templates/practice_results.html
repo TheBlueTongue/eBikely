@@ -1,35 +1,153 @@
 {% extends 'base.html' %}
 
-{% block content %}
-  <div class="container mt-4">
-    <h2>Practice Quiz Results</h2>
-    <p>Your score: {{ score }} / {{ feedback|length }}</p>
+{% block title %}Practice Results - eBikely{% endblock %}
 
-    <hr>
+{% block content %}
+<div class="auth-container fade-in">
+  <div class="auth-card slide-up" style="max-width: 800px;">
+    <div class="auth-header">
+      <i class="fas fa-check-circle auth-icon"></i>
+      <h2>Practice Quiz Results</h2>
+      <p class="subtitle">Your score: {{ score }} / {{ feedback|length }}</p>
+    </div>
 
     {% for question_id, result in feedback.items() %}
-      <div class="card mb-3 {% if result.is_correct %}border-success{% else %}border-danger{% endif %}">
-        <div class="card-body">
-          <h5 class="card-title">{{ result.question_text }}</h5>
-          <ul class="list-group list-group-flush">
-            {% for label, option in result.options.items() %}
-              <li class="list-group-item
-                         {% if result.is_correct and label == result.correct_answer %}
-                            list-group-item-success
-                         {% elif not result.is_correct and label == result.correct_answer %}
-                            list-group-item-danger
-                         {% elif not result.is_correct and label == result.user_answer %}
-                            list-group-item-warning
-                         {% endif %}">
-                <strong>{{ label }}:</strong> {{ option }}
-              </li>
-            {% endfor %}
-          </ul>
-        </div>
+      <div class="mb-4">
+        <h5>{{ result.question_text }}</h5>
+        <ul class="list-group list-group-flush">
+          {% for label, option in result.options.items() %}
+            <li class="list-group-item 
+              {% if result.is_correct and label == result.correct_answer %}
+                list-group-item-success
+              {% elif not result.is_correct and label == result.correct_answer %}
+                list-group-item-danger
+              {% elif not result.is_correct and label == result.user_answer %}
+                list-group-item-warning
+              {% endif %}">
+              <strong>{{ label }}:</strong> {{ option }}
+            </li>
+          {% endfor %}
+        </ul>
       </div>
+      <hr class="bg-white">
     {% endfor %}
 
-    <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-block pulse mt-4">Back to Dashboard</a>
   </div>
+</div>
+
+<style>
+.auth-container {
+  min-height: 100vh;
+  padding: 2rem;
+  background: linear-gradient(135deg, #004e92 0%, #000428 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-card {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  padding: 2rem;
+  border-radius: 15px;
+  width: 100%;
+  color: white;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.auth-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: #00c6ff;
+}
+
+.auth-header h2 {
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.subtitle {
+  opacity: 0.9;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Bootstrap override colors on dark bg */
+.list-group-item {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  margin-bottom: 0.5rem;
+}
+
+.list-group-item-success {
+  background-color: rgba(40, 167, 69, 0.4);
+}
+
+.list-group-item-danger {
+  background-color: rgba(220, 53, 69, 0.4);
+}
+
+.list-group-item-warning {
+  background-color: rgba(255, 193, 7, 0.4);
+  color: black;
+}
+
+/* Button style */
+.btn-block {
+  border-radius: 50px;
+  padding: 0.8rem;
+  font-size: 1.1rem;
+  background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+  border: none;
+  color: white;
+  width: 100%;
+}
+
+/* Animations */
+.fade-in {
+  animation: fadeIn 0.8s ease forwards;
+}
+
+.slide-up {
+  animation: slideUp 0.5s ease forwards;
+}
+
+.pulse {
+  animation: pulse 2s infinite;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+</style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 {% endblock %}
+
 
