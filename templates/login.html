@@ -8,7 +8,7 @@
         <div class="text-center mb-4">
             <i class="fas fa-bicycle auth-icon mb-3"></i>
             <h2 class="font-weight-bold">Welcome Back, Rider</h2>
-            <p class="text">Log in to access your ride tools and safety features</p>
+            <p class="subtle-text">Log in to access your ride tools and safety features</p>
         </div>
         
         <form method="POST" action="{{ url_for('login') }}">
@@ -28,7 +28,7 @@
         </form>
 
         <div class="text-center mt-4">
-            <p class="text">New to eBikely? <a href="{{ url_for('register') }}" class="text-primary font-weight-bold">Register your ride</a></p>
+            <p class="subtle-text">New to eBikely? <a href="{{ url_for('register') }}" class="text-primary font-weight-bold">Register your ride</a></p>
         </div>
     </div>
 </div>
@@ -41,6 +41,11 @@
     justify-content: center;
     padding: 2rem;
     
+}
+
+.subtle-text {
+    color: #6c757d;
+    font-size: 0.95rem;
 }
 
 .auth-card {
