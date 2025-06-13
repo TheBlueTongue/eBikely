@@ -4,140 +4,105 @@
 
 {% block content %}
 <div class="auth-container fade-in">
-    <div class="auth-card slide-up">
-        <div class="auth-header">
-            <i class="fas fa-bicycle auth-icon"></i>
-            <h1>Welcome Back, Rider</h1>
-            <p class="subtitle">Log in to access your ride details and safety tools</p>
+    <div class="card auth-card slide-up">
+        <div class="text-center mb-4">
+            <i class="fas fa-bicycle auth-icon mb-3"></i>
+            <h2 class="font-weight-bold">Welcome Back, Rider</h2>
+            <p class="text">Log in to access your ride tools and safety features</p>
         </div>
         
-        <form method="POST" action="{{ url_for('login') }}" class="auth-form">
+        <form method="POST" action="{{ url_for('login') }}">
             {{ form.hidden_tag() }}
-            <div class="form-group">
-                <div class="input-group">
-                    <i class="fas fa-user input-icon"></i>
-                    {{ form.username(class="form-control custom-input", placeholder="Username") }}
-                </div>
+
+            <div class="form-group position-relative">
+                <i class="fas fa-user input-icon"></i>
+                {{ form.username(class="form-control custom-input", placeholder="Username") }}
             </div>
-            <div class="form-group">
-                <div class="input-group">
-                    <i class="fas fa-lock input-icon"></i>
-                    {{ form.password(class="form-control custom-input", placeholder="Password") }}
-                </div>
+
+            <div class="form-group position-relative">
+                <i class="fas fa-lock input-icon"></i>
+                {{ form.password(class="form-control custom-input", placeholder="Password") }}
             </div>
+
             <button type="submit" class="btn btn-primary btn-block pulse">Login</button>
         </form>
-        
-        <div class="auth-footer">
-            <p>New to eBikely? <a href="{{ url_for('register') }}">Register your ride</a></p>
+
+        <div class="text-center mt-4">
+            <p class="text">New to eBikely? <a href="{{ url_for('register') }}" class="text-primary font-weight-bold">Register your ride</a></p>
         </div>
     </div>
 </div>
 
 <style>
 .auth-container {
-    min-height: 100vh;
-    padding: 2rem;
-    background: linear-gradient(135deg, #004e92 0%, #000428 100%);
+    min-height: 80vh;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 2rem;
+    
 }
 
 .auth-card {
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    border-radius: 20px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
     padding: 2rem;
-    border-radius: 15px;
     width: 100%;
     max-width: 400px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-.auth-header {
-    text-align: center;
-    margin-bottom: 2rem;
-    color: white;
+    animation: slideUp 0.6s ease-out;
 }
 
 .auth-icon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    color: #00c6ff;
-}
-
-.auth-header h1 {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
-}
-
-.auth-header .subtitle {
-    opacity: 0.9;
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-.auth-form .form-group {
-    margin-bottom: 1.5rem;
-}
-
-.input-group {
-    position: relative;
+    font-size: 2.5rem;
+    color: #4195f7;
 }
 
 .input-icon {
     position: absolute;
-    left: 1rem;
     top: 50%;
+    left: 1rem;
     transform: translateY(-50%);
-    color: #004e92;
-    z-index: 1;
+    color: #4195f7;
+    z-index: 2;
 }
 
 .custom-input {
-    padding-left: 3rem;
-    border-radius: 50px;
-    border: none;
-    background: rgba(255, 255, 255, 0.9);
+    padding-left: 2.75rem;
+    border-radius: 30px;
+    border: 1px solid #ced4da;
+    background: #ffffff;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
 }
 
 .btn-block {
     border-radius: 50px;
-    padding: 0.8rem;
+    padding: 0.75rem;
     font-size: 1.1rem;
-    background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+    background: linear-gradient(135deg, #6fbaff 0%, #4195f7 100%);
     border: none;
-    margin-top: 2rem;
     color: white;
+    font-weight: 500;
+    transition: all 0.3s ease-in-out;
 }
 
-.auth-footer {
-    text-align: center;
-    margin-top: 2rem;
-    color: white;
-}
-
-.auth-footer a {
-    color: #00c6ff;
-    text-decoration: none;
-    font-weight: bold;
-}
-
-.auth-footer a:hover {
-    color: #0072ff;
+.btn-block:hover {
+    opacity: 0.9;
+    transform: scale(1.02);
 }
 
 /* Animations */
 .fade-in {
-    animation: fadeIn 0.8s ease forwards;
+    animation: fadeIn 0.6s ease-in-out;
 }
 
 .slide-up {
-    animation: slideUp 0.5s ease forwards;
+    animation: slideUp 0.5s ease-out;
 }
 
 .pulse {
-    animation: pulse 2s infinite;
+    animation: pulse 2.5s infinite ease-in-out;
 }
 
 @keyframes fadeIn {
@@ -157,12 +122,12 @@
 }
 
 @keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.04); }
 }
 </style>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 {% endblock %}
+
 
