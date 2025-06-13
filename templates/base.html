@@ -1,100 +1,158 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}E-Bike Manager{% endblock %}</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}E-Bike Manager{% endblock %}</title>
 
-    <!-- Bootstrap 4 -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- Bootstrap 4 -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 
-    <!-- Custom styles -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <!-- Custom styles -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 
-    <!-- Icons (optional) -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+  <!-- Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .navbar-brand img {
-            height: 40px;
-            border: none;
-        }
-        .nav-link.active {
-            font-weight: bold;
-            color: #f8f9fa !important;
-            background-color: #495057;
-            border-radius: 0.25rem;
-        }
-        .container {
-            max-width: 1200px;
-        }
-    </style>
+  <style>
+    body {
+      min-height: 100vh;
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+      color: #212529;
+    }
 
-    {% block head_extra %}{% endblock %}
+    .navbar {
+      background-color: #ffffffee;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+    }
+
+    .navbar-brand img {
+      height: 42px;
+    }
+
+    .nav-link {
+      color: #1e3a8a !important;
+      font-weight: 500;
+      transition: background 0.3s ease;
+      border-radius: 0.5rem;
+      padding: 0.5rem 0.8rem;
+    }
+
+    .nav-link:hover {
+      background-color: rgba(30, 58, 138, 0.1);
+    }
+
+    .nav-link.active {
+      background-color: #90caf9;
+      color: #0d47a1 !important;
+      font-weight: bold;
+    }
+
+    .container, .container-fluid {
+      max-width: 1200px;
+    }
+
+    .alert {
+      border-radius: 0.75rem;
+    }
+
+    .card, .auth-card {
+      background: #ffffff;
+      border-radius: 1rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      transition: transform 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #64b5f6, #1e88e5);
+      border: none;
+      border-radius: 50px;
+      padding: 0.6rem 1.4rem;
+      font-size: 1rem;
+      color: white;
+      font-weight: 500;
+    }
+
+    .btn-primary:hover {
+      opacity: 0.9;
+    }
+  </style>
+
+  {% block head_extra %}{% endblock %}
 </head>
 <body>
 
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container-fluid">
-            <!-- Logo linked to dashboard -->
-            <a class="navbar-brand" href="{{ url_for('dashboard') }}">
-                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="E-Bike Manager Logo">
-            </a>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-light">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="{{ url_for('dashboard') }}">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="E-Bike Manager Logo">
+      </a>
 
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav"
-                    aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+              aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
 
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ml-auto">
-                    {% if current_user.is_authenticated %}
-                        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">Dashboard</a></li>
-                        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'ebike_management' %}active{% endif %}" href="{{ url_for('ebike_management') }}">Manage E-Bikes</a></li>
-                        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'parking_spots' %}active{% endif %}" href="{{ url_for('parking_spots') }}">Parking Spots</a></li>
-                        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'practice_selection' %}active{% endif %}" href="{{ url_for('practice_selection') }}">Practice Tests</a></li>
-                        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'real_tests' %}active{% endif %}" href="{{ url_for('real_tests') }}">Real Tests</a></li>
-                        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'user_profile' %}active{% endif %}" href="{{ url_for('user_profile') }}">{{ current_user.username }}</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">Logout</a></li>
-                    {% else %}
-                        <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}">Login</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ url_for('register') }}">Register</a></li>
-                    {% endif %}
-                </ul>
-            </div>
-        </div>
-    </nav>
+      <div class="collapse navbar-collapse justify-content-between" id="navbarNav">
+        <!-- Left: Main links -->
+        <ul class="navbar-nav">
+          {% if current_user.is_authenticated %}
+            <li class="nav-item"><a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link {% if request.endpoint == 'ebike_management' %}active{% endif %}" href="{{ url_for('ebike_management') }}">Manage E-Bikes</a></li>
+            <li class="nav-item"><a class="nav-link {% if request.endpoint == 'parking_spots' %}active{% endif %}" href="{{ url_for('parking_spots') }}">Parking Spots</a></li>
+            <li class="nav-item"><a class="nav-link {% if request.endpoint == 'practice_selection' %}active{% endif %}" href="{{ url_for('practice_selection') }}">Practice Tests</a></li>
+            <li class="nav-item"><a class="nav-link {% if request.endpoint == 'real_tests' %}active{% endif %}" href="{{ url_for('real_tests') }}">Real Tests</a></li>
+          {% endif %}
+        </ul>
 
-    <!-- Flash messages -->
-    <div class="container mt-4">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-
-        <!-- Page Content -->
-        {% block content %}{% endblock %}
+        <!-- Right: User / Auth -->
+        <ul class="navbar-nav">
+          {% if current_user.is_authenticated %}
+            <li class="nav-item"><a class="nav-link {% if request.endpoint == 'user_profile' %}active{% endif %}" href="{{ url_for('user_profile') }}"><i class="fas fa-user-circle"></i> {{ current_user.username }}</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+          {% else %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('register') }}"><i class="fas fa-user-plus"></i> Register</a></li>
+          {% endif %}
+        </ul>
+      </div>
     </div>
+  </nav>
 
-    <!-- Scripts (Bootstrap + optional JS features) -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <!-- Flash Messages -->
+  <div class="container mt-4">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
 
-    {% block scripts %}{% endblock %}
+  <!-- Page Content -->
+  <div class="container my-4">
+    {% block content %}{% endblock %}
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+  {% block scripts %}{% endblock %}
 </body>
 </html>
-
