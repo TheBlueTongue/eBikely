@@ -3,14 +3,13 @@
 {% block title %}Welcome - eBikely{% endblock %}
 
 {% block content %}
-<div class="welcome-container">
-    <div class="hero-section">
-        <h1 class="fade-in">Welcome to eBikely</h1>
-        <p class="slide-up">Empowering safer, smarter e-bike use at school</p>
-        
-        <div class="cta-buttons slide-up">
+<div class="container welcome-container">
+    <div class="hero-section card text-white mb-5 p-5">
+        <h1 class="fade-in display-4 mb-3">Welcome to eBikely</h1>
+        <p class="slide-up lead mb-4">Empowering safer, smarter e-bike use at school</p>
+        <div class="cta-buttons slide-up d-flex justify-content-center">
             {% if not current_user.is_authenticated %}
-                <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg pulse">Login</a>
+                <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg pulse mr-3">Login</a>
                 <a href="{{ url_for('register') }}" class="btn btn-outline-light btn-lg">Register Your Ride</a>
             {% else %}
                 <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg pulse">Go to Dashboard</a>
@@ -18,41 +17,53 @@
         </div>
     </div>
 
-    <div class="features-grid slide-up-delay">
-        <div class="feature-card">
-            <i class="fas fa-bicycle feature-icon"></i>
-            <h3>e-Bike Registration</h3>
-            <p>Securely register your e-bike with the school system</p>
+    <div class="features-grid slide-up-delay row">
+        <div class="col-md-4 mb-4">
+            <div class="feature-card card text-white p-4 h-100">
+                <i class="fas fa-bicycle feature-icon mb-3"></i>
+                <h4>e-Bike Registration</h4>
+                <p>Securely register your e-bike with the school system</p>
+            </div>
         </div>
-        <div class="feature-card">
-            <i class="fas fa-clipboard-check feature-icon"></i>
-            <h3>Safety Testing</h3>
-            <p>Pass a custom safety quiz before riding to school</p>
+        <div class="col-md-4 mb-4">
+            <div class="feature-card card text-white p-4 h-100">
+                <i class="fas fa-clipboard-check feature-icon mb-3"></i>
+                <h4>Safety Testing</h4>
+                <p>Pass a custom safety quiz before riding to school</p>
+            </div>
         </div>
-        <div class="feature-card">
-            <i class="fas fa-user-shield feature-icon"></i>
-            <h3>Admin Oversight</h3>
-            <p>Staff tools to monitor usage and review incidents</p>
+        <div class="col-md-4 mb-4">
+            <div class="feature-card card text-white p-4 h-100">
+                <i class="fas fa-user-shield feature-icon mb-3"></i>
+                <h4>Admin Oversight</h4>
+                <p>Staff tools to monitor usage and review incidents</p>
+            </div>
         </div>
     </div>
 
-    <div class="reviews-section slide-up-delay">
-        <h2 class="text-white mb-4">What Our Riders Say</h2>
-        <div class="reviews-grid">
-            <div class="review-card">
-                <div class="stars">★★★★★</div>
-                <p class="review-text">"eBikely makes it easy to prove I'm riding safely and gives teachers peace of mind."</p>
-                <div class="reviewer">- Liam R., Year 11</div>
+    <div class="reviews-section slide-up-delay card text-white p-5 mt-5">
+        <h2 class="mb-4">What Our Riders Say</h2>
+        <div class="reviews-grid row">
+            <div class="col-md-4 mb-4">
+                <div class="review-card card bg-transparent p-4 h-100">
+                    <div class="stars">★★★★★</div>
+                    <p class="review-text">"eBikely makes it easy to prove I'm riding safely and gives teachers peace of mind."</p>
+                    <div class="reviewer">- Liam R., Year 11</div>
+                </div>
             </div>
-            <div class="review-card">
-                <div class="stars">★★★★★</div>
-                <p class="review-text">"The safety test is a great idea—now everyone riding to school knows the rules."</p>
-                <div class="reviewer">- Priya K., Year 12</div>
+            <div class="col-md-4 mb-4">
+                <div class="review-card card bg-transparent p-4 h-100">
+                    <div class="stars">★★★★★</div>
+                    <p class="review-text">"The safety test is a great idea—now everyone riding to school knows the rules."</p>
+                    <div class="reviewer">- Priya K., Year 12</div>
+                </div>
             </div>
-            <div class="review-card">
-                <div class="stars">★★★★½</div>
-                <p class="review-text">"Really smart way to handle all the e-bike chaos. Clean interface too!"</p>
-                <div class="reviewer">- Marcus L., Year 10</div>
+            <div class="col-md-4 mb-4">
+                <div class="review-card card bg-transparent p-4 h-100">
+                    <div class="stars">★★★★½</div>
+                    <p class="review-text">"Really smart way to handle all the e-bike chaos. Clean interface too!"</p>
+                    <div class="reviewer">- Marcus L., Year 10</div>
+                </div>
             </div>
         </div>
     </div>
@@ -60,172 +71,83 @@
 
 <style>
 .welcome-container {
-    
-    min-height: 100vh;
-    padding: 2rem;
-    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-    color: white;
-    text-align: center;
+    padding-top: 3rem;
+    padding-bottom: 3rem;
 }
 
 .hero-section {
-    padding: 4rem 1rem;
-    background: rgba(0, 0, 0, 0.2); /* Add semi-transparent background */
-    border-radius: 15px; /* Match other sections' style */
-    margin-bottom: 2rem; /* Add some spacing */
-}
-
-.hero-section h1 {
-    font-size: 3.5rem;
-    margin-bottom: 1.5rem;
-    color: #ffffff;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* Increased shadow for better contrast */
-}
-
-.hero-section p {
-    font-size: 1.5rem;
-    margin-bottom: 2rem;
-    opacity: 1; /* Changed from 0.9 for better visibility */
-    color: #ffffff;
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5); /* Increased shadow for better contrast */
-}
-
-.cta-buttons {
-    gap: 1rem;
-    display: flex;
-    justify-content: center;
-}
-
-.cta-buttons .btn {
-    margin: 0 0.5rem;
-    padding: 0.8rem 2rem;
-    border-radius: 50px;
-    transition: transform 0.3s ease;
-}
-
-.cta-buttons .btn:hover {
-    transform: translateY(-3px);
-}
-
-.features-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 2rem;
-    margin-top: 4rem;
-    padding: 2rem;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    border-radius: 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
 .feature-card {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 2rem;
-    border-radius: 15px;
-    backdrop-filter: blur(10px);
+    background: linear-gradient(to right, #3f51b5cc, #2196f3cc);
+    border: none;
+    border-radius: 1rem;
+    backdrop-filter: blur(6px);
     transition: transform 0.3s ease;
-    color: #ffffff;
 }
-
 .feature-card:hover {
-    transform: translateY(-10px);
+    transform: translateY(-8px);
 }
 
 .feature-icon {
     font-size: 2.5rem;
+}
+
+.reviews-section {
+    background: linear-gradient(to right, #1e3c72dd, #2a5298dd);
+    border-radius: 1rem;
+}
+
+.review-card {
+    border-radius: 1rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+}
+.review-card:hover {
+    transform: translateY(-4px);
+}
+.stars {
+    color: #ffd700;
+    font-size: 1.4rem;
+}
+.review-text {
+    font-style: italic;
     margin-bottom: 1rem;
+}
+.reviewer {
+    font-weight: bold;
+    color: #f0f0f0;
 }
 
 /* Animations */
 .fade-in {
     animation: fadeIn 1s ease-in;
 }
-
 .slide-up {
     animation: slideUp 0.8s ease-out;
 }
-
 .slide-up-delay {
     animation: slideUp 0.8s ease-out 0.3s backwards;
 }
-
 .pulse {
     animation: pulse 2s infinite;
 }
-
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
 }
-
 @keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes pulse {
     0% { transform: scale(1); }
     50% { transform: scale(1.05); }
     100% { transform: scale(1); }
 }
-
-/* New Reviews Section Styles */
-.reviews-section {
-    padding: 4rem 2rem;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 15px;
-    margin-top: 4rem;
-}
-
-.reviews-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-    margin-top: 2rem;
-}
-
-.review-card {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 2rem;
-    border-radius: 10px;
-    backdrop-filter: blur(10px);
-    transition: transform 0.3s ease;
-    color: #ffffff;
-}
-
-.review-card:hover {
-    transform: translateY(-5px);
-}
-
-.stars {
-    color: #ffd700;
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-}
-
-.review-text {
-    font-size: 1.1rem;
-    line-height: 1.6;
-    margin-bottom: 1rem;
-    font-style: italic;
-}
-
-.reviewer {
-    font-weight: bold;
-    color: #e0e0e0;
-}
-
-/* Additional animation for reviews */
-.reviews-section {
-    animation: fadeIn 1s ease-in 0.6s backwards;
-}
-
 </style>
-
-<!-- Add Font Awesome for icons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 {% endblock %}
-
