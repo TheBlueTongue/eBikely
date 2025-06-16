@@ -2,117 +2,107 @@
 {% block title %}Dashboard - eBikely{% endblock %}
 
 {% block content %}
-<div class="dashboard-container fade-in">
-    <div class="dashboard-header">
-        <i class="fas fa-bicycle dashboard-icon"></i>
-        <h1>Welcome, {{ current_user.username }}!</h1>
-        <p class="subtitle">Track your test progress, manage e-bikes, and reserve parking.</p>
+<div class="container dashboard-container fade-in py-5">
+    <div class="hero-section card text-white text-center mb-5 p-5">
+        <i class="fas fa-bicycle dashboard-icon mb-3"></i>
+        <h1 class="display-4">Welcome, {{ current_user.username }}!</h1>
+        <p class="lead">Track your test progress, manage e-bikes, and reserve parking.</p>
     </div>
 
-    <div class="dashboard-grid">
+    <div class="dashboard-grid row slide-up-delay">
         <!-- E-Bike Overview -->
-        <div class="card">
-            <h2>Your E-Bikes</h2>
-            {% if ebike_count > 0 %}
-                <p>You have <strong>{{ ebike_count }}</strong> registered e-bike{{ 's' if ebike_count > 1 else '' }}.</p>
-                <a href="{{ url_for('ebike_management') }}">Manage E-Bikes →</a>
-            {% else %}
-                <p>No e-bikes registered yet.</p>
-                <a href="{{ url_for('ebike_management') }}">Register one now →</a>
-            {% endif %}
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="feature-card card text-white p-4 h-100">
+                <h4>Your E-Bikes</h4>
+                {% if ebike_count > 0 %}
+                    <p>You have <strong>{{ ebike_count }}</strong> registered e-bike{{ 's' if ebike_count > 1 else '' }}.</p>
+                {% else %}
+                    <p>No e-bikes registered yet.</p>
+                {% endif %}
+                <a href="{{ url_for('ebike_management') }}" class="btn btn-outline-light btn-sm mt-2">Manage E-Bikes</a>
+            </div>
         </div>
 
         <!-- Practice Test Progress -->
-        <div class="card">
-            <h2>Practice Test Progress</h2>
-            {% if completed_practice_tests > 0 %}
-                <p><strong>{{ completed_practice_tests }}</strong> practice test{{ 's' if completed_practice_tests > 1 else '' }} passed.</p>
-            {% else %}
-                <p>No practice tests completed yet.</p>
-            {% endif %}
-            <a href="{{ url_for('practice_selection') }}">Take a Practice Test →</a>
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="feature-card card text-white p-4 h-100">
+                <h4>Practice Test Progress</h4>
+                {% if completed_practice_tests > 0 %}
+                    <p><strong>{{ completed_practice_tests }}</strong> practice test{{ 's' if completed_practice_tests > 1 else '' }} passed.</p>
+                {% else %}
+                    <p>No practice tests completed yet.</p>
+                {% endif %}
+                <a href="{{ url_for('practice_selection') }}" class="btn btn-outline-light btn-sm mt-2">Take a Test</a>
+            </div>
         </div>
 
         <!-- Real Test Count -->
-        <div class="card">
-            <h2>Real Test Attempts</h2>
-            <p>{{ total_tests }} attempt{{ 's' if total_tests != 1 else '' }} made.</p>
-            <a href="{{ url_for('real_tests') }}">View Real Tests →</a>
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="feature-card card text-white p-4 h-100">
+                <h4>Real Test Attempts</h4>
+                <p>{{ total_tests }} attempt{{ 's' if total_tests != 1 else '' }} made.</p>
+                <a href="{{ url_for('real_tests') }}" class="btn btn-outline-light btn-sm mt-2">View Results</a>
+            </div>
         </div>
 
         <!-- Parking Availability -->
-        <div class="card">
-            <h2>Available Parking Spots</h2>
-            <p>{{ available_parking_spots }} spot{{ 's' if available_parking_spots != 1 else '' }} available right now.</p>
-            <a href="{{ url_for('reserve_spot') }}">Reserve a Spot →</a>
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="feature-card card text-white p-4 h-100">
+                <h4>Available Parking</h4>
+                <p>{{ available_parking_spots }} spot{{ 's' if available_parking_spots != 1 else '' }} available now.</p>
+                <a href="{{ url_for('reserve_spot') }}" class="btn btn-outline-light btn-sm mt-2">Reserve Spot</a>
+            </div>
         </div>
     </div>
 </div>
 
 <style>
 .dashboard-container {
-    padding: 2rem;
-    background: linear-gradient(to bottom right, #004e92, #000428);
-    color: white;
-    min-height: 100vh;
+    padding-top: 3rem;
+    padding-bottom: 3rem;
 }
 
-.dashboard-header {
-    text-align: center;
-    margin-bottom: 2rem;
+.hero-section {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    border-radius: 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.feature-card {
+    background: linear-gradient(to right, #3f51b5cc, #2196f3cc);
+    border: none;
+    border-radius: 1rem;
+    backdrop-filter: blur(6px);
+    transition: transform 0.3s ease;
+}
+.feature-card:hover {
+    transform: translateY(-8px);
 }
 
 .dashboard-icon {
     font-size: 3rem;
     color: #00c6ff;
-    margin-bottom: 0.5rem;
 }
 
-.dashboard-header h1 {
-    font-size: 2rem;
-    text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.4);
+a.btn-outline-light:hover {
+    background-color: #ffffff22;
+    color: #fff;
 }
 
-.dashboard-header .subtitle {
-    font-size: 1rem;
-    opacity: 0.9;
-    margin-top: 0.5rem;
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+/* Animations */
+.fade-in {
+    animation: fadeIn 1s ease-in;
 }
-
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 1.5rem;
+.slide-up-delay {
+    animation: slideUp 0.8s ease-out 0.3s backwards;
 }
-
-.card {
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(8px);
-    padding: 1.5rem;
-    border-radius: 15px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-    text-align: left;
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
-
-.card h2 {
-    font-size: 1.3rem;
-    margin-bottom: 0.5rem;
-}
-
-.card p {
-    font-size: 1rem;
-    margin-bottom: 1rem;
-}
-
-.card a {
-    color: #00c6ff;
-    text-decoration: none;
-    font-weight: 600;
-}
-
-.card a:hover {
-    color: #0072ff;
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 </style>
 
