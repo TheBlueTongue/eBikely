@@ -3,124 +3,78 @@
 {% block title %}Practice Tests - eBikely{% endblock %}
 
 {% block content %}
-<div class="auth-container fade-in">
-  <div class="auth-card slide-up">
-    <div class="auth-header">
-      <i class="fas fa-clipboard-check auth-icon"></i>
-      <h1>Select a Practice Test</h1>
-      <p class="subtitle">Sharpen your skills before hitting the road</p>
+<div class="container dashboard-container fade-in py-5">
+    <div class="hero-section card text-white text-center mb-5 p-5">
+        <i class="fas fa-clipboard-check dashboard-icon mb-3"></i>
+        <h1 class="display-4">Practice Makes Perfect</h1>
+        <p class="lead">Sharpen your skills before hitting the road.</p>
     </div>
 
-    <ul class="list-group">
-      {% for test in tests %}
-      <li class="list-group-item d-flex justify-content-between align-items-center">
-        <a href="{{ url_for('practice_quiz', test_id=test.id) }}" class="test-link">{{ test.name }}</a>
-        {% if test.id in attempts %}
-        <span class="badge bg-success">Last Score: {{ attempts[test.id].score }}</span>
-        {% endif %}
-      </li>
-      {% endfor %}
-    </ul>
-  </div>
+    <div class="row justify-content-center slide-up-delay">
+        {% for test in tests %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="feature-card card text-white p-4 h-100">
+                <h4 class="mb-2">{{ test.name }}</h4>
+                {% if test.id in attempts %}
+                    <p>Last Score: <strong>{{ attempts[test.id].score }}</strong></p>
+                {% else %}
+                    <p>No attempt yet.</p>
+                {% endif %}
+                <a href="{{ url_for('practice_quiz', test_id=test.id) }}" class="btn btn-outline-light btn-sm mt-2">Start Test</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
 </div>
 
 <style>
-  .auth-container {
-    min-height: 100vh;
-    padding: 2rem;
-    background: linear-gradient(135deg, #004e92 0%, #000428 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+.dashboard-container {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+}
 
-  .auth-card {
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(10px);
-    padding: 2rem;
-    border-radius: 15px;
-    width: 100%;
-    max-width: 500px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  }
+.hero-section {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    border-radius: 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
 
-  .auth-header {
-    text-align: center;
-    margin-bottom: 1.5rem;
-    color: white;
-  }
-
-  .auth-icon {
-    font-size: 2.5rem;
-    margin-bottom: 0.8rem;
-    color: #00c6ff;
-  }
-
-  .auth-header h1 {
-    font-size: 1.8rem;
-    margin-bottom: 0.3rem;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
-  }
-
-  .subtitle {
-    font-size: 0.95rem;
-    opacity: 0.9;
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
-  }
-
-  .list-group {
-    background: transparent;
-  }
-
-  .list-group-item {
-    background: rgba(255, 255, 255, 0.12);
+.feature-card {
+    background: linear-gradient(to right, #3f51b5cc, #2196f3cc);
     border: none;
-    margin-bottom: 12px;
-    font-size: 1.05rem;
-    color: #fff;
-    border-radius: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
+    border-radius: 1rem;
+    backdrop-filter: blur(6px);
+    transition: transform 0.3s ease;
+}
+.feature-card:hover {
+    transform: translateY(-8px);
+}
 
-  .test-link {
+.dashboard-icon {
+    font-size: 3rem;
     color: #00c6ff;
-    font-weight: bold;
-    text-decoration: none;
-  }
+}
 
-  .test-link:hover {
-    color: #0072ff;
-  }
+a.btn-outline-light:hover {
+    background-color: #ffffff22;
+    color: #fff;
+}
 
-  .badge {
-    background-color: #00c6ff;
-    font-weight: bold;
-  }
-
-  .bg-success {
-    background-color: #28a745 !important;
-  }
-
-  /* Animations */
-  .fade-in {
-    animation: fadeIn 0.8s ease forwards;
-  }
-
-  .slide-up {
-    animation: slideUp 0.5s ease forwards;
-  }
-
-  @keyframes fadeIn {
+/* Animations */
+.fade-in {
+    animation: fadeIn 1s ease-in;
+}
+.slide-up-delay {
+    animation: slideUp 0.8s ease-out 0.3s backwards;
+}
+@keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
-  }
-
-  @keyframes slideUp {
+}
+@keyframes slideUp {
     from { opacity: 0; transform: translateY(30px); }
     to { opacity: 1; transform: translateY(0); }
-  }
+}
 </style>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
