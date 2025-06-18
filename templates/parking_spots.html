@@ -1,23 +1,31 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="parking-container">
-  <h1>Reserve a Parking Spot</h1>
+<div class="container py-5">
 
-  <!-- Date Selector -->
-  <div class="date-selector">
-    <a href="?date={{ (selected_date - timedelta(days=1)).isoformat() }}">&#8592;</a>
-    <span>{{ selected_date.strftime("%A, %d %B %Y") }}</span>
-    <a href="?date={{ (selected_date + timedelta(days=1)).isoformat() }}">&#8594;</a>
+  <!-- Gradient Card: Heading + Date Selector -->
+  <div class="hero-section card text-white text-center mb-5 p-5 fade-in">
+    <h1 class="display-4 mb-3">Reserve a Parking Spot</h1>
+    <div class="date-selector d-flex justify-content-center align-items-center slide-up">
+        <a 
+          href="?date={{ (selected_date - timedelta(days=1)).isoformat() }}" 
+          class="btn btn-outline-light btn-sm mx-3 {% if selected_date <= current_date %}disabled{% endif %}"
+          {% if selected_date <= current_date %}aria-disabled="true"{% endif %}
+        >
+          &#8592;
+        </a>
+        <span class="lead font-weight-bold">{{ selected_date.strftime("%A, %d %B %Y") }}</span>
+        <a href="?date={{ (selected_date + timedelta(days=1)).isoformat() }}" class="btn btn-outline-light btn-sm mx-3">&#8594;</a>
+    </div>
   </div>
 
-  <!-- Grid-based Map View -->
-  <div class="spot-grid-map">
+  <!-- Grid Map -->
+  <div class="spot-grid-map slide-up-delay">
     {% for row in layout_grid %}
       <div class="grid-row">
         {% for cell in row %}
           {% set spot = spots_by_number.get(cell) %}
           {% if cell and spot %}
-            <div class="spot-wrapper"> <!-- ✅ New wrapper -->
+            <div class="spot-wrapper">
               <form method="POST" action="{{ '/reserve_spot' if spot.is_available else '/release_spot' }}">
                 <input type="hidden" name="spot_id" value="{{ spot.id }}">
                 <input type="hidden" name="selected_date" value="{{ selected_date }}">
@@ -50,70 +58,57 @@
   </div>
 </div>
 
-
 <style>
-body {
-  margin: 0;
-  font-family: 'Segoe UI', sans-serif;
-  background: #f8f9fa;
+
+.hero-section {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    border-radius: 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
-.parking-container {
- 
-  max-width: none;
-  margin: 0;
-  color: #222;
+.date-selector span {
+    font-size: 1.25rem;
+    color: #fff;
 }
 
-h1 {
-  text-align: center;
-  margin-bottom: 1rem;
-  color: #333;
-}
 
-.date-selector {
-  text-align: center;
-  margin-bottom: 2rem;
+.date-selector span {
   font-size: 1.2rem;
-}
-
-.date-selector a {
-  color: #007bff;
-  text-decoration: none;
-  margin: 0 1rem;
-  font-weight: bold;
+  color: #fff;
 }
 
 /* Grid Layout */
 .spot-grid-map {
   display: grid;
   grid-template-rows: repeat(26, 40px);
-  gap: 0px;
+  gap: 0;
+  justify-content: center;
 }
 
 .grid-row {
   display: grid;
   grid-template-columns: repeat(34, 40px);
-  
-  gap: 0px;
+  gap: 0;
 }
 
 .spot {
   width: 40px;
   height: 40px;
-  border-radius: 4px;
+  border-radius: 6px;
   text-align: center;
-  font-size: 0.6rem;
+  font-size: 0.65rem;
   cursor: pointer;
   border: none;
   position: relative;
   padding: 5px;
   color: white;
   overflow: hidden;
+  font-weight: bold;
 }
 
 .spot.available {
   background-color: #28a745;
+  transition: background-color 0.3s ease;
 }
 
 .spot.available:hover {
@@ -122,6 +117,7 @@ h1 {
 
 .spot.reserved {
   background-color: #dc3545;
+  transition: opacity 0.3s ease;
 }
 
 .spot.reserved[disabled] {
@@ -150,56 +146,38 @@ h1 {
 }
 
 .spot.building {
-  background-color: #929292;  /* Bootstrap Red */
-  color: white;
-  text-align: center;
-  font-size: 0.6rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  background-color: #444;
   border-radius: 0;
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
 }
-
 .spot.fence {
-  background-color: #545454;  /* Bootstrap Gray */
-  color: white;
-  text-align: center;
-  font-size: 0.6rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  background-color: #666;
   border-radius: 0;
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
 }
-
 .spot.path {
-  background-color: #b4b4b4;  /* Bootstrap Orange */
-  color: white;
-  text-align: center;
-  font-size: 0.6rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  background-color: #999;
   border-radius: 0;
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
 }
 
 .spot-wrapper {
-  padding: 2px; /* Creates gap around interactive spots only */
+  padding: 2px;
   box-sizing: border-box;
 }
-
-/* Override form styling inside wrapper */
 .spot-wrapper form {
   margin: 0;
 }
 
+/* Animations */
+.fade-in {
+  animation: fadeIn 1s ease-in;
+}
+.slide-up {
+  animation: slideUp 0.8s ease-out;
+}
+.slide-up-delay {
+  animation: slideUp 0.8s ease-out 0.3s backwards;
+}
+
 </style>
 {% endblock %}
+
+

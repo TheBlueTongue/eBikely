@@ -19,6 +19,7 @@ from sqlalchemy.orm import joinedload
 from flask import Flask, render_template, request, redirect, url_for, flash, session as flask_session
 from flask_login import login_required, current_user
 import random
+from flask import abort
 
 
 
@@ -163,28 +164,45 @@ def ebike_management():
 def reserve_spot():
     session = SessionLocal()
     spot_id = request.form.get('spot_id')
-    selected_date = request.form.get('selected_date', date.today().isoformat())
-    reservation_date = datetime.strptime(selected_date, "%Y-%m-%d").date()
+    selected_date_str = request.form.get('selected_date')
+    reservation_date = datetime.strptime(selected_date_str, "%Y-%m-%d").date()
+
+    # Prevent reserving spots for past dates
+    if reservation_date < date.today():
+        flash("Cannot book spots for past dates.", "danger")
+        session.close()
+        return redirect(f'/parking_spots?date={selected_date_str}')
 
     spot = session.query(ParkingSpot)\
-    .options(joinedload(ParkingSpot.reserved_user))\
-    .filter_by(id=spot_id)\
-    .first()
+        .options(joinedload(ParkingSpot.reserved_user))\
+        .filter(ParkingSpot.id == spot_id, ParkingSpot.reservation_date == reservation_date)\
+        .first()
 
-    if not spot or (spot.reservation_date == reservation_date and not spot.is_available):
-        flash("This spot is no longer available for that date.", "danger")
-        session.close()
-        return redirect(f'/parking_spots?date={selected_date}')
+    if not spot:
+        # Spot may not be booked yet — check availability by ID only and set date
+        spot = session.query(ParkingSpot).filter_by(id=spot_id).first()
+        if spot and spot.is_available:
+            # Check if student already has a booking for that date
+            if current_user.role == 'student':
+                existing = session.query(ParkingSpot).filter_by(reserved_for=current_user.id, reservation_date=reservation_date).first()
+                if existing:
+                    flash("You already have a spot booked for this date.", "warning")
+                    session.close()
+                    return redirect(f'/parking_spots?date={selected_date_str}')
 
-    spot.is_available = False
-    spot.reserved_for = current_user.id
-    spot.reservation_date = reservation_date
-    session.commit()
-    flash("Spot reserved successfully!", "success")
+            # Reserve the spot
+            spot.is_available = False
+            spot.reserved_for = current_user.id
+            spot.reservation_date = reservation_date
+            session.commit()
+            flash("Spot reserved successfully!", "success")
+        else:
+            flash("This spot is not available.", "danger")
+    else:
+        flash("This spot is already booked for that date.", "danger")
 
     session.close()
-    return redirect(f'/parking_spots?date={selected_date}')
-
+    return redirect(f'/parking_spots?date={selected_date_str}')
 
 
 @app.route('/release_spot', methods=['POST'])
@@ -192,20 +210,29 @@ def reserve_spot():
 def release_spot():
     session = SessionLocal()
     spot_id = request.form.get('spot_id')
-    selected_date = request.form.get('selected_date', date.today().isoformat())
+    selected_date_str = request.form.get('selected_date')
+    reservation_date = datetime.strptime(selected_date_str, "%Y-%m-%d").date()
 
-    spot = session.query(ParkingSpot).get(spot_id)
+    spot = session.query(ParkingSpot)\
+        .filter(ParkingSpot.id == spot_id, ParkingSpot.reservation_date == reservation_date)\
+        .first()
 
-    if spot and spot.reserved_for == current_user.id:
+    if not spot:
+        flash("Invalid spot.", "danger")
+        session.close()
+        return redirect(f'/parking_spots?date={selected_date_str}')
+
+    if current_user.role == 'teacher' or spot.reserved_for == current_user.id:
         spot.is_available = True
         spot.reserved_for = None
         spot.reservation_date = None
         session.commit()
         flash("Spot released.", "info")
+    else:
+        flash("You don't have permission to release this spot.", "danger")
 
     session.close()
-    return redirect(f'/parking_spots?date={selected_date}')
-
+    return redirect(f'/parking_spots?date={selected_date_str}')
 
 @app.route("/parking_spots", methods=["GET"])
 @login_required
@@ -215,16 +242,30 @@ def parking_spots():
     selected_date_str = request.args.get("date")
     selected_date = datetime.strptime(selected_date_str, "%Y-%m-%d").date() if selected_date_str else date.today()
 
-    # Eager load reserved_user to avoid DetachedInstanceError
-    spots = session.query(ParkingSpot).options(joinedload(ParkingSpot.reserved_user)).all()
+    # Load all spots with joinedload to prevent DetachedInstanceError
+    all_spots = (
+        session.query(ParkingSpot)
+        .options(joinedload(ParkingSpot.reserved_user))
+        .all()
+    )
 
-    spots_by_number = {spot.number: spot for spot in spots}
+    # Filter the ones that are reserved for the selected date
+    reserved_spots = [spot for spot in all_spots if spot.reservation_date == selected_date]
 
+    # Build the dictionary by number
+    spots_by_number = {spot.number: spot for spot in all_spots}
+
+    # Override with the filtered reserved spots (even though they’re the same objects)
+    for reserved_spot in reserved_spots:
+        spots_by_number[reserved_spot.number] = reserved_spot
+
+    # Load the layout
     base_dir = os.path.dirname(os.path.abspath(__file__))
     map_path = os.path.join(base_dir, "Map.xlsx")
     layout_df = pd.read_excel(map_path, header=None).iloc[0:30, 0:42].fillna("").astype(str)
     layout_grid = layout_df.values.tolist()
 
+    # Now it's safe to close the session
     session.close()
 
     return render_template(
@@ -232,10 +273,9 @@ def parking_spots():
         layout_grid=layout_grid,
         spots_by_number=spots_by_number,
         selected_date=selected_date,
-        timedelta=timedelta
+        timedelta=timedelta,
+        current_date=date.today()
     )
-
-
 
 
 
