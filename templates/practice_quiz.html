@@ -3,129 +3,92 @@
 {% block title %}{{ test.name }} - eBikely{% endblock %}
 
 {% block content %}
-<div class="auth-container fade-in">
-    <div class="auth-card slide-up" style="max-width: 800px;">
-        <div class="auth-header">
-            <i class="fas fa-clipboard-list auth-icon"></i>
-            <h1>{{ test.name }}</h1>
-            <p class="subtitle">Answer each question to test your safety knowledge</p>
+<div class="container dashboard-container fade-in py-5">
+  <div class="hero-section card text-white text-center mb-4 p-5">
+    <i class="fas fa-clipboard-list dashboard-icon mb-3"></i>
+    <h1 class="display-5">{{ test.name }}</h1>
+    <p class="lead">Answer each question to test your safety knowledge.</p>
+  </div>
+
+  <div class="feature-card card text-white p-4 slide-up-delay" style="max-width: 900px; margin: 0 auto;">
+    <form method="POST" action="">
+      {% for question in questions %}
+        <div class="mb-4">
+          <p><strong>Q{{ loop.index }}:</strong> {{ question.question }}</p>
+          {% for opt in question.parsed_options %}
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="radio" name="{{ question.id }}" id="{{ question.id }}{{ loop.index }}" value="{{ opt }}">
+              <label class="form-check-label" for="{{ question.id }}{{ loop.index }}">
+                {{ opt }}
+              </label>
+            </div>
+          {% endfor %}
         </div>
+        {% if not loop.last %}
+        <hr class="bg-white">
+        {% endif %}
+      {% endfor %}
 
-        <form method="POST" action="">
-            {% for question in questions %}
-                <div class="mb-4">
-                    <p><strong>Q{{ loop.index }}:</strong> {{ question.question }}</p>
-                    {% for opt in question.parsed_options %}
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="radio" name="{{ question.id }}" id="{{ question.id }}{{ loop.index }}" value="{{ opt }}">
-                            <label class="form-check-label" for="{{ question.id }}{{ loop.index }}">
-                                {{ opt }}
-                            </label>
-                        </div>
-                    {% endfor %}
-                </div>
-                <hr class="bg-white">
-            {% endfor %}
-
-            <button type="submit" class="btn btn-primary btn-block pulse">Submit Quiz</button>
-        </form>
-    </div>
+      <button type="submit" class="btn btn-outline-light btn-lg mt-4 w-100 pulse">Submit Quiz</button>
+    </form>
+  </div>
 </div>
 
 <style>
-/* Reuse login styles */
-.auth-container {
-    min-height: 100vh;
-    padding: 2rem;
-    background: linear-gradient(135deg, #004e92 0%, #000428 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.dashboard-container {
+  padding-top: 3rem;
+  padding-bottom: 3rem;
 }
 
-.auth-card {
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(10px);
-    padding: 2rem;
-    border-radius: 15px;
-    width: 100%;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    color: white;
+.hero-section {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  border-radius: 1rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
-.auth-header {
-    text-align: center;
-    margin-bottom: 2rem;
+.feature-card {
+  background: linear-gradient(to right, #3f51b5cc, #2196f3cc);
+  border: none;
+  border-radius: 1rem;
+  backdrop-filter: blur(6px);
+  transition: transform 0.3s ease;
+}
+.feature-card:hover {
+  transform: translateY(-6px);
 }
 
-.auth-icon {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
-    color: #00c6ff;
+.dashboard-icon {
+  font-size: 3rem;
+  color: #00c6ff;
 }
 
-.auth-header h1 {
-    font-size: 1.8rem;
-    margin-bottom: 0.5rem;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+/* Button pulse animation */
+.pulse {
+  animation: pulse 2s infinite;
 }
 
-.subtitle {
-    opacity: 0.9;
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
-    font-size: 1rem;
-}
-
-/* Custom button */
-.btn-block {
-    border-radius: 50px;
-    padding: 0.8rem;
-    font-size: 1.1rem;
-    background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
-    border: none;
-    margin-top: 2rem;
-    color: white;
-    width: 100%;
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
 }
 
 /* Animations */
 .fade-in {
-    animation: fadeIn 0.8s ease forwards;
+  animation: fadeIn 1s ease-in;
 }
-
-.slide-up {
-    animation: slideUp 0.5s ease forwards;
+.slide-up-delay {
+  animation: slideUp 0.8s ease-out 0.3s backwards;
 }
-
-.pulse {
-    animation: pulse 2s infinite;
-}
-
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
-
 @keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 </style>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 {% endblock %}
-
-
-
