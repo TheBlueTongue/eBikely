@@ -27,6 +27,7 @@ class User(Base, UserMixin):
     real_tests = relationship('RealTest', back_populates='user', cascade="all, delete-orphan")
     practice_attempts = relationship("PracticeAttempt", back_populates="user", cascade="all, delete-orphan")
     parking_spot = relationship("ParkingSpot", back_populates="reserved_user", uselist=False)
+    reservations = relationship("ParkingReservation", back_populates="user")
     role = Column(String(10))  # 'student' or 'teacher'
     department = Column(String(150))  # for teachers
     year = Column(Integer)  # for students
@@ -117,6 +118,19 @@ class ParkingSpot(Base):
     reservation_date = Column(Date)  # Date of reservation
     
     reserved_user = relationship("User", back_populates="parking_spot")
+    reservations = relationship("ParkingReservation", back_populates="spot")
+
+
+class ParkingReservation(Base):
+    __tablename__ = 'parking_reservations'
+
+    id = Column(Integer, primary_key=True)
+    spot_id = Column(Integer, ForeignKey('parking_spots.id'))
+    user_id = Column(Integer, ForeignKey('users.id'))
+    reservation_date = Column(Date, nullable=False)
+
+    user = relationship("User", back_populates="reservations")
+    spot = relationship("ParkingSpot", back_populates="reservations")
 
 class RealTestAttempt(Base):
     __tablename__ = 'real_test_attempts'

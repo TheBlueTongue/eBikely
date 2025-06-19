@@ -2,7 +2,7 @@ from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
-from database_setup import SessionLocal, User, EBike, PracticeTest, RealTest, ParkingSpot, PracticeAttempt, PracticeQuestion, RealTestAttempt, PracticeTest
+from database_setup import SessionLocal, User, EBike, PracticeTest, RealTest, ParkingSpot, PracticeAttempt, PracticeQuestion, RealTestAttempt, PracticeTest, ParkingReservation
 import forms
 from datetime import datetime
 from flask import Flask
@@ -167,41 +167,43 @@ def reserve_spot():
     selected_date_str = request.form.get('selected_date')
     reservation_date = datetime.strptime(selected_date_str, "%Y-%m-%d").date()
 
-    # Prevent reserving spots for past dates
     if reservation_date < date.today():
         flash("Cannot book spots for past dates.", "danger")
         session.close()
         return redirect(f'/parking_spots?date={selected_date_str}')
 
-    spot = session.query(ParkingSpot)\
-        .options(joinedload(ParkingSpot.reserved_user))\
-        .filter(ParkingSpot.id == spot_id, ParkingSpot.reservation_date == reservation_date)\
-        .first()
+    # Check if spot is already reserved for that date
+    existing_reservation = session.query(ParkingReservation).filter_by(
+        spot_id=spot_id,
+        reservation_date=reservation_date
+    ).first()
 
-    if not spot:
-        # Spot may not be booked yet — check availability by ID only and set date
-        spot = session.query(ParkingSpot).filter_by(id=spot_id).first()
-        if spot and spot.is_available:
-            # Check if student already has a booking for that date
-            if current_user.role == 'student':
-                existing = session.query(ParkingSpot).filter_by(reserved_for=current_user.id, reservation_date=reservation_date).first()
-                if existing:
-                    flash("You already have a spot booked for this date.", "warning")
-                    session.close()
-                    return redirect(f'/parking_spots?date={selected_date_str}')
-
-            # Reserve the spot
-            spot.is_available = False
-            spot.reserved_for = current_user.id
-            spot.reservation_date = reservation_date
-            session.commit()
-            flash("Spot reserved successfully!", "success")
-        else:
-            flash("This spot is not available.", "danger")
-    else:
+    if existing_reservation:
         flash("This spot is already booked for that date.", "danger")
+        session.close()
+        return redirect(f'/parking_spots?date={selected_date_str}')
 
+    # Prevent multiple bookings by same student for same date
+    if current_user.role == 'student':
+        user_reservation = session.query(ParkingReservation).filter_by(
+            user_id=current_user.id,
+            reservation_date=reservation_date
+        ).first()
+        if user_reservation:
+            flash("You already have a spot booked for this date.", "warning")
+            session.close()
+            return redirect(f'/parking_spots?date={selected_date_str}')
+
+    # Book the spot
+    new_reservation = ParkingReservation(
+        spot_id=spot_id,
+        user_id=current_user.id,
+        reservation_date=reservation_date
+    )
+    session.add(new_reservation)
+    session.commit()
     session.close()
+    flash("Spot reserved successfully!", "success")
     return redirect(f'/parking_spots?date={selected_date_str}')
 
 
@@ -213,19 +215,18 @@ def release_spot():
     selected_date_str = request.form.get('selected_date')
     reservation_date = datetime.strptime(selected_date_str, "%Y-%m-%d").date()
 
-    spot = session.query(ParkingSpot)\
-        .filter(ParkingSpot.id == spot_id, ParkingSpot.reservation_date == reservation_date)\
-        .first()
+    reservation = session.query(ParkingReservation).filter_by(
+        spot_id=spot_id,
+        reservation_date=reservation_date
+    ).first()
 
-    if not spot:
-        flash("Invalid spot.", "danger")
+    if not reservation:
+        flash("Invalid spot or not reserved on this date.", "danger")
         session.close()
         return redirect(f'/parking_spots?date={selected_date_str}')
 
-    if current_user.role == 'teacher' or spot.reserved_for == current_user.id:
-        spot.is_available = True
-        spot.reserved_for = None
-        spot.reservation_date = None
+    if current_user.role == 'teacher' or reservation.user_id == current_user.id:
+        session.delete(reservation)
         session.commit()
         flash("Spot released.", "info")
     else:
@@ -234,38 +235,42 @@ def release_spot():
     session.close()
     return redirect(f'/parking_spots?date={selected_date_str}')
 
+
 @app.route("/parking_spots", methods=["GET"])
 @login_required
 def parking_spots():
     session = SessionLocal()
 
+    # Parse selected date or use today
     selected_date_str = request.args.get("date")
     selected_date = datetime.strptime(selected_date_str, "%Y-%m-%d").date() if selected_date_str else date.today()
 
-    # Load all spots with joinedload to prevent DetachedInstanceError
-    all_spots = (
-        session.query(ParkingSpot)
-        .options(joinedload(ParkingSpot.reserved_user))
+    # Get all spots
+    all_spots = session.query(ParkingSpot).all()
+
+    # Get reservations for the selected date
+    reservations = session.query(ParkingReservation)\
+        .filter(ParkingReservation.reservation_date == selected_date)\
         .all()
-    )
 
-    # Filter the ones that are reserved for the selected date
-    reserved_spots = [spot for spot in all_spots if spot.reservation_date == selected_date]
+    # Build a mapping of spot_id -> reservation
+    reservation_map = {r.spot_id: r for r in reservations}
 
-    # Build the dictionary by number
-    spots_by_number = {spot.number: spot for spot in all_spots}
+    # Build a dictionary of spot number → (spot, reservation)
+    spots_by_number = {
+        spot.number: {
+            "spot": spot,
+            "reservation": reservation_map.get(spot.id)
+        }
+        for spot in all_spots
+    }
 
-    # Override with the filtered reserved spots (even though they’re the same objects)
-    for reserved_spot in reserved_spots:
-        spots_by_number[reserved_spot.number] = reserved_spot
-
-    # Load the layout
+    # Load layout grid from Excel file
     base_dir = os.path.dirname(os.path.abspath(__file__))
     map_path = os.path.join(base_dir, "Map.xlsx")
     layout_df = pd.read_excel(map_path, header=None).iloc[0:30, 0:42].fillna("").astype(str)
     layout_grid = layout_df.values.tolist()
 
-    # Now it's safe to close the session
     session.close()
 
     return render_template(
@@ -274,8 +279,10 @@ def parking_spots():
         spots_by_number=spots_by_number,
         selected_date=selected_date,
         timedelta=timedelta,
-        current_date=date.today()
+        current_date=date.today(),
+        current_user=current_user
     )
+
 
 
 
