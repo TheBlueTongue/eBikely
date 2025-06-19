@@ -282,10 +282,10 @@ def parking_spots():
 @app.route('/seed_parking_spots')
 def seed_parking_spots():
     session = SessionLocal()
-    for i in range(1, 101):
+    for i in range(1, 97):
         spot = ParkingSpot(number=f"OS-{i}", area=Area.OLD_SCHOOL)
         session.add(spot)
-    for i in range(1, 51):
+    for i in range(1, 31):
         spot = ParkingSpot(number=f"SG-{i}", area=Area.SIDE_GATE)
         session.add(spot)
     session.commit()
