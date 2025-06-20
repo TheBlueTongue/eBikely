@@ -14,20 +14,32 @@
     {% for question_id, result in feedback.items() %}
       <div class="mb-4">
         <h5>{{ result.question_text }}</h5>
-        <ul class="list-group list-group-flush">
-          {% for label, option in result.options.items() %}
-            <li class="list-group-item 
-              {% if result.is_correct and label == result.correct_answer %}
-                list-group-item-success
-              {% elif not result.is_correct and label == result.correct_answer %}
-                list-group-item-danger
-              {% elif not result.is_correct and label == result.user_answer %}
-                list-group-item-warning
-              {% endif %}">
-              <strong>{{ label }}:</strong> {{ option }}
-            </li>
-          {% endfor %}
-        </ul>
+          <ul class="list-group list-group-flush">
+            {% for label, option in result.options.items() %}
+              <li class="list-group-item d-flex justify-content-between align-items-center
+                {% if label == result.correct_label %}
+                  list-group-item-success
+                {% elif label == result.user_label and not result.is_correct %}
+                  list-group-item-danger
+                {% endif %}">
+                
+                <div>
+                  <strong>{{ label }}:</strong> {{ option }}
+                  {% if label == result.correct_label %}
+                    <span class="badge bg-success ms-2">✔ Correct answer</span>
+                  {% endif %}
+                  {% if label == result.user_label %}
+                    {% if result.is_correct %}
+                      <span class="badge bg-light text-dark ms-2">Your answer</span>
+                    {% else %}
+                      <span class="badge bg-danger text-white ms-2">✘ Your answer</span>
+                    {% endif %}
+                  {% endif %}
+                </div>
+              </li>
+            {% endfor %}
+
+          </ul>
       </div>
       {% if not loop.last %}
       <hr class="bg-white">
@@ -39,6 +51,28 @@
 </div>
 
 <style>
+
+.badge {
+  font-size: 0.8rem;
+  padding: 0.3em 0.5em;
+  border-radius: 0.5rem;
+}
+.bg-success {
+  background-color: #28a745 !important;
+}
+.bg-danger {
+  background-color: #dc3545 !important;
+}
+.bg-light {
+  background-color: #f8f9fa !important;
+}
+.text-dark {
+  color: #212529 !important;
+}
+.ms-2 {
+  margin-left: 0.5rem;
+}
+
 .dashboard-container {
   padding-top: 3rem;
   padding-bottom: 3rem;
