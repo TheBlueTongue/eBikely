@@ -2,7 +2,7 @@ from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
-from database_setup import SessionLocal, User, EBike, PracticeTest, RealTest, ParkingSpot, PracticeAttempt, PracticeQuestion, RealTestAttempt, PracticeTest, ParkingReservation
+from database_setup import SessionLocal, User, EBike, PracticeTest, RealTest, ParkingSpot, PracticeAttempt, PracticeQuestion, RealTestAttempt, PracticeTest, ParkingReservation, RealTestQuestion
 import forms
 from datetime import datetime
 from flask import Flask
@@ -299,10 +299,92 @@ def seed_parking_spots():
     session.close()
     return "Seeded parking spots!"
 
-@app.route('/real_tests')
+@app.route('/real-test', methods=['GET', 'POST'])
 @login_required
-def real_tests():
-    return render_template('real_tests.html')
+def real_test():
+    session = SessionLocal()
+
+    if request.method == 'POST':
+        submitted_answers = request.form
+        test_id = submitted_answers.get('test_id')
+        score = 0
+        questions = session.query(RealTestQuestion).filter_by(test_id=test_id).all()
+        feedback = []
+
+        for question in questions:
+            user_answer = submitted_answers.get(str(question.id))
+            correct = user_answer == question.correct_answer
+            if correct:
+                score += 1
+            feedback.append({
+                'question': question.question_text,
+                'user_answer': user_answer,
+                'correct_answer': question.correct_answer,
+                'options': {
+                    'A': question.option_a,
+                    'B': question.option_b,
+                    'C': question.option_c,
+                    'D': question.option_d
+                }
+            })
+
+        passed = score >= 18
+        test_attempt = RealTestAttempt(
+            user_id=current_user.id,
+            test_id=test_id,
+            passed=passed
+        )
+        session.add(test_attempt)
+        session.commit()
+        session.close()
+
+        return render_template('real_test_results.html', score=score, passed=passed, feedback=feedback)
+
+    # Create a new RealTest
+    real_test = RealTest(user_id=current_user.id, name="Official eBike Safety Test")
+    session.add(real_test)
+    session.commit()
+
+    # Sample 20 random practice questions
+    practice_questions = session.query(PracticeQuestion).all()
+    selected = []
+    option_labels = ['A', 'B', 'C', 'D']
+
+    for pq in random.sample(practice_questions, len(practice_questions)):
+        if len(selected) >= 20:
+            break
+
+        options = [opt.strip() for opt in pq.options.split(",")]
+        correct_answer = pq.correct_answer.strip()
+
+        if correct_answer not in options:
+            print(f"Skipping question: '{pq.question}' because correct answer '{correct_answer}' not in options: {options}")
+            continue
+
+        random.shuffle(options)
+        try:
+            correct_label = option_labels[options.index(correct_answer)]
+        except ValueError:
+            continue  # fallback if still problematic
+
+        rtq = RealTestQuestion(
+            test_id=real_test.id,
+            question_text=pq.question,
+            correct_answer=correct_label,
+            option_a=options[0],
+            option_b=options[1],
+            option_c=options[2],
+            option_d=options[3],
+        )
+        session.add(rtq)
+        selected.append(rtq)
+
+    session.commit()
+    questions = session.query(RealTestQuestion).filter_by(test_id=real_test.id).all()
+    session.close()
+    return render_template('real_test.html', questions=questions, test_id=real_test.id, getattr=getattr)
+
+
 
 # Route for user profile
 @app.route('/profile')

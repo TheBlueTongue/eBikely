@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Official eBike Safety Test - eBikely{% endblock %}
+
+{% block content %}
+<div class="container dashboard-container fade-in py-5">
+  <div class="hero-section card text-white text-center mb-4 p-5">
+    <i class="fas fa-clipboard-check dashboard-icon mb-3"></i>
+    <h1 class="display-5">Official eBike Safety Test</h1>
+    <p class="lead">Answer all 20 questions. You must score 18 or higher to pass.</p>
+  </div>
+
+  <div class="feature-card card text-white p-4 slide-up-delay" style="max-width: 900px; margin: 0 auto;">
+    <form method="POST" action="">
+      <input type="hidden" name="test_id" value="{{ test_id }}">
+      
+      {% for question in questions %}
+        <div class="mb-4">
+          <p><strong>Q{{ loop.index }}:</strong> {{ question.question_text }}</p>
+          {% for label in ['A', 'B', 'C', 'D'] %}
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="radio" name="{{ question.id }}" id="{{ question.id }}-{{ label }}" value="{{ label }}" required>
+              <label class="form-check-label" for="{{ question.id }}-{{ label }}">
+                {{ label }}: {{ getattr(question, 'option_' ~ label.lower()) }}
+              </label>
+            </div>
+          {% endfor %}
+        </div>
+        {% if not loop.last %}
+        <hr class="bg-white">
+        {% endif %}
+      {% endfor %}
+      
+      <button type="submit" class="btn btn-outline-light btn-lg mt-4 w-100 pulse">Submit Test</button>
+    </form>
+  </div>
+</div>
+
+<style>
+.dashboard-container {
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+}
+
+.hero-section {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  border-radius: 1rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.feature-card {
+  background: linear-gradient(to right, #3f51b5cc, #2196f3cc);
+  border: none;
+  border-radius: 1rem;
+  backdrop-filter: blur(6px);
+  transition: transform 0.3s ease;
+}
+.feature-card:hover {
+  transform: translateY(-6px);
+}
+
+.dashboard-icon {
+  font-size: 3rem;
+  color: #00e6b8;
+}
+
+.pulse {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+.fade-in {
+  animation: fadeIn 1s ease-in;
+}
+.slide-up-delay {
+  animation: slideUp 0.8s ease-out 0.3s backwards;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}

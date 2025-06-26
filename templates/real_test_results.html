@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block title %}Real Test Results - eBikely{% endblock %}
+
+{% block content %}
+<div class="container dashboard-container fade-in py-5">
+  <div class="hero-section card text-white text-center mb-4 p-5">
+    <i class="fas fa-clipboard-check dashboard-icon mb-3"></i>
+    <h1 class="display-5">Real Test Results</h1>
+    <p class="lead">Your score: {{ score }} / {{ feedback|length }}</p>
+    {% if passed %}
+      <div class="alert alert-success mt-3">Congratulations! You passed the test.</div>
+    {% else %}
+      <div class="alert alert-danger mt-3">You did not pass. You need at least 18 to pass.</div>
+    {% endif %}
+  </div>
+
+  <div class="feature-card card text-white p-4 slide-up-delay" style="max-width: 900px; margin: 0 auto;">
+    {% for result in feedback %}
+      <div class="mb-4">
+        <h5>{{ result.question }}</h5>
+        <ul class="list-group list-group-flush">
+          {% for label in ['A', 'B', 'C', 'D'] %}
+            <li class="list-group-item d-flex justify-content-between align-items-center
+              {% if label == result.correct_answer %}
+                list-group-item-success
+              {% elif label == result.user_answer and result.user_answer != result.correct_answer %}
+
+                list-group-item-danger
+              {% endif %}">
+
+              <div>
+                <strong>{{ label }}:</strong> {{ result.options[label] }}
+                {% if label == result.correct_answer %}
+                  <span class="badge bg-success ms-2">✔ Correct answer</span>
+                {% endif %}
+                {% if label == result.user_answer %}
+                  {% if label == result.correct_answer %}
+
+                    <span class="badge bg-light text-dark ms-2">Your answer</span>
+                  {% else %}
+                    <span class="badge bg-danger text-white ms-2">✘ Your answer</span>
+                  {% endif %}
+                {% endif %}
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% if not loop.last %}
+      <hr class="bg-white">
+      {% endif %}
+    {% endfor %}
+
+    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-light btn-lg mt-4 w-100 pulse">Back to Dashboard</a>
+  </div>
+</div>
+
+<!-- Style same as previous template -->
+<style>
+.badge {
+  font-size: 0.8rem;
+  padding: 0.3em 0.5em;
+  border-radius: 0.5rem;
+}
+.bg-success {
+  background-color: #28a745 !important;
+}
+.bg-danger {
+  background-color: #dc3545 !important;
+}
+.bg-light {
+  background-color: #f8f9fa !important;
+}
+.text-dark {
+  color: #212529 !important;
+}
+.ms-2 {
+  margin-left: 0.5rem;
+}
+
+.dashboard-container {
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+}
+
+.hero-section {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  border-radius: 1rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.feature-card {
+  background: linear-gradient(to right, #3f51b5cc, #2196f3cc);
+  border: none;
+  border-radius: 1rem;
+  backdrop-filter: blur(6px);
+  transition: transform 0.3s ease;
+}
+.feature-card:hover {
+  transform: translateY(-6px);
+}
+
+.dashboard-icon {
+  font-size: 3rem;
+  color: #00c6ff;
+}
+
+.list-group-item {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  margin-bottom: 0.5rem;
+}
+.list-group-item-success {
+  background-color: rgba(40, 167, 69, 0.4);
+}
+.list-group-item-danger {
+  background-color: rgba(220, 53, 69, 0.4);
+}
+
+/* Button */
+.pulse {
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+/* Animations */
+.fade-in {
+  animation: fadeIn 1s ease-in;
+}
+.slide-up-delay {
+  animation: slideUp 0.8s ease-out 0.3s backwards;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}
