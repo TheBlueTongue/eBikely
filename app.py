@@ -2,7 +2,7 @@ from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
-from database_setup import SessionLocal, User, EBike, PracticeTest, RealTest, ParkingSpot, PracticeAttempt, PracticeQuestion, RealTestAttempt, PracticeTest, ParkingReservation, RealTestQuestion
+from database_setup import SessionLocal, User, EBike, PracticeTest, RealTest, ParkingSpot, PracticeAttempt, PracticeQuestion, RealTestAttempt, PracticeTest, ParkingReservation, RealTestQuestion, IncidentReport
 import forms
 from datetime import datetime
 from flask import Flask
@@ -504,20 +504,22 @@ def approve_licenses():
 def license_page():
     session = SessionLocal()
 
-    # If user has passed the real test and has a license
+    # If user has a license, show status and reports
     if current_user.has_license:
+        incident_reports = session.query(IncidentReport).filter_by(user_id=current_user.id).all()
         session.close()
-        return render_template('license_status.html')  # Optional: show 'Licensed!' message or renewal date
+        return render_template('license_status.html', licensed=True, reports=incident_reports)
 
-    # If user has passed test but not approved
+    # Check if user has passed the test
     passed_test = session.query(RealTestAttempt).filter_by(user_id=current_user.id, passed=True).first()
     session.close()
 
     if passed_test:
         return render_template('license_status.html', awaiting_approval=True)
 
-    # Redirect to real test if they haven't passed
-    return redirect(url_for('real_test'))
+    # If not passed, show default info page with option to take test
+    return render_template('license_status.html', show_real_test_button=True)
+
 
 
 

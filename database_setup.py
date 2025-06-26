@@ -28,6 +28,7 @@ class User(Base, UserMixin):
     practice_attempts = relationship("PracticeAttempt", back_populates="user", cascade="all, delete-orphan")
     parking_spot = relationship("ParkingSpot", back_populates="reserved_user", uselist=False)
     reservations = relationship("ParkingReservation", back_populates="user")
+    incident_reports = relationship('IncidentReport', back_populates='user')
     has_license = Column(Boolean, default=False)
     role = Column(String(10))  # 'student' or 'teacher'
     department = Column(String(150))  # for teachers
@@ -145,6 +146,15 @@ class RealTestAttempt(Base):
 
     user = relationship("User", back_populates="real_test_attempts")
     test = relationship("RealTest", back_populates="attempts")
+
+class IncidentReport(Base):
+    __tablename__ = 'incident_reports'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    description = Column(Text)
+    date_reported = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship('User', back_populates='incident_reports')
 
 def seed_data():
     session = SessionLocal()

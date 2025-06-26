@@ -2,14 +2,40 @@
 {% block title %}Your License - eBikely{% endblock %}
 {% block content %}
 <div class="container py-5">
-  {% if awaiting_approval %}
+  <h2 class="text-center mb-4">eBike License Status</h2>
+
+  {% if licensed %}
+    <div class="alert alert-success text-center">
+      ✅ You are fully licensed to use the e-bike system.
+    </div>
+    {% if reports and reports|length > 0 %}
+      <div class="card mt-4">
+        <div class="card-header">Incident Reports</div>
+        <ul class="list-group list-group-flush">
+          {% for report in reports %}
+            <li class="list-group-item">
+              <strong>{{ report.date_reported.strftime('%d %b %Y') }}:</strong> {{ report.description }}
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% else %}
+      <p class="text-muted text-center mt-3">No incident reports on file.</p>
+    {% endif %}
+
+  {% elif awaiting_approval %}
     <div class="alert alert-info text-center">
       ✅ You passed the test! A teacher will need to approve your license before you can use the system.
     </div>
-  {% else %}
-    <div class="alert alert-success text-center">
-      🎉 You are fully licensed to use the e-bike system.
+
+  {% elif show_real_test_button %}
+    <div class="alert alert-warning text-center">
+      ⚠️ You do not yet have a license. You must pass the safety test and be approved by a teacher.
     </div>
+    <div class="text-center">
+      <a href="{{ url_for('real_test') }}" class="btn btn-primary mt-3">Take the Real Test</a>
+    </div>
+
   {% endif %}
 </div>
 {% endblock %}
