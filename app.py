@@ -420,7 +420,23 @@ def real_test():
 @app.route('/profile')
 @login_required
 def user_profile():
-    return render_template('user_profile.html')
+    session = SessionLocal()
+    try:
+        # Load user with all necessary relationships
+        user = session.query(User).options(
+            joinedload(User.ebikes),
+            joinedload(User.practice_attempts),
+            joinedload(User.real_test_attempts),
+            joinedload(User.reservations)
+        ).filter_by(id=current_user.id).first()
+        
+        if not user:
+            flash('User not found.', 'error')
+            return redirect(url_for('dashboard'))
+        
+        return render_template('user_profile.html', user=user)
+    finally:
+        session.close()
 
 @app.route('/practice', methods=['GET'])
 @login_required
