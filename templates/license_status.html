@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Your License - eBikely{% endblock %}
+{% block content %}
+<div class="container py-5">
+  {% if awaiting_approval %}
+    <div class="alert alert-info text-center">
+      ✅ You passed the test! A teacher will need to approve your license before you can use the system.
+    </div>
+  {% else %}
+    <div class="alert alert-success text-center">
+      🎉 You are fully licensed to use the e-bike system.
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

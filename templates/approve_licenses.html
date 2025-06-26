@@ -1,0 +1,11 @@
+<form method="POST">
+  {% for student in students %}
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" name="approve" value="{{ student.id }}" id="user{{ student.id }}">
+      <label class="form-check-label" for="user{{ student.id }}">
+        {{ student.username }} (Year {{ student.year }}, House {{ student.house }})
+      </label>
+    </div>
+  {% endfor %}
+  <button type="submit" class="btn btn-success mt-3">Approve Selected</button>
+</form>
