@@ -1,171 +1,469 @@
 {% extends 'base.html' %}
-{% block content %}
-<div class="container py-5">
 
-  <!-- Heading + Date Selector -->
-  <div class="hero-section card text-white text-center mb-5 p-5 fade-in">
-    <h1 class="display-4 mb-3">Reserve a Parking Spot</h1>
-    <div class="date-selector d-flex justify-content-center align-items-center slide-up">
+{% block title %}Parking Reservations - eBikely{% endblock %}
+
+{% block content %}
+<div class="container welcome-container">
+  <!-- Header Section -->
+  <div class="hero-section card text-white p-5 mb-5 fade-in">
+    <div class="text-center">
+      <i class="fas fa-parking dashboard-icon mb-3"></i>
+      <h1 class="display-4 mb-3">Parking Reservations</h1>
+      <p class="lead mb-4">Reserve your e-bike parking spot for the day</p>
+      
+      <!-- Date Selector -->
+      <div class="date-selector d-flex justify-content-center align-items-center">
         <a 
           href="?date={{ (selected_date - timedelta(days=1)).isoformat() }}" 
-          class="btn btn-outline-light btn-sm mx-3 {% if selected_date <= current_date %}disabled{% endif %}"
+          class="btn btn-outline-light date-nav {% if selected_date <= current_date %}disabled{% endif %}"
           {% if selected_date <= current_date %}aria-disabled="true"{% endif %}
         >
-          &#8592;
+          <i class="fas fa-chevron-left"></i>
         </a>
-        <span class="lead font-weight-bold">{{ selected_date.strftime("%A, %d %B %Y") }}</span>
-        <a href="?date={{ (selected_date + timedelta(days=1)).isoformat() }}" class="btn btn-outline-light btn-sm mx-3">&#8594;</a>
+        <div class="date-display mx-4">
+          <div class="selected-date">{{ selected_date.strftime("%A") }}</div>
+          <div class="selected-date-detail">{{ selected_date.strftime("%B %d, %Y") }}</div>
+        </div>
+        <a href="?date={{ (selected_date + timedelta(days=1)).isoformat() }}" class="btn btn-outline-light date-nav">
+          <i class="fas fa-chevron-right"></i>
+        </a>
+      </div>
     </div>
   </div>
 
-  <!-- Grid Map -->
-  <div class="spot-grid-map slide-up-delay">
-    {% for row in layout_grid %}
-      <div class="grid-row">
-        {% for cell in row %}
-          {% set spot_info = spots_by_number.get(cell) %}
-          {% if cell and spot_info %}
-            {% set spot = spot_info.spot %}
-            {% set reservation = spot_info.reservation %}
-            <div class="spot-wrapper">
-              <form method="POST" action="{{ '/release_spot' if reservation else '/reserve_spot' }}">
-                <input type="hidden" name="spot_id" value="{{ spot.id }}">
-                <input type="hidden" name="selected_date" value="{{ selected_date }}">
-                <button
-                  class="spot {{ 'reserved' if reservation else 'available' }}"
-                  title="Spot {{ spot.number }}"
-                  {% if reservation and reservation.user_id != current_user.id and current_user.role != 'teacher' %}disabled{% endif %}
-                >
-                  {{ spot.number }}
-                  {% if reservation %}
-                    <div class="x">X</div>
-                  {% endif %}
-                </button>
-              </form>
-            </div>
-          {% else %}
-            {% if cell.lower() == "building" %}
-              <div class="spot building"></div>
-            {% elif cell.lower() == "fence" %}
-              <div class="spot fence"></div>
-            {% elif cell.lower() == "path" %}
-              <div class="spot path"></div>
-            {% else %}
-              <div class="spot empty"></div>
-            {% endif %}
-          {% endif %}
+  <!-- Legend and Stats -->
+  <div class="row slide-up-delay g-4 mb-4">
+    <div class="col-md-8">
+      <div class="card feature-card p-4">
+        <h3 class="mb-3">
+          <i class="fas fa-map me-2"></i>
+          Parking Map
+        </h3>
+        <div class="legend d-flex flex-wrap gap-3 mb-3">
+          <div class="legend-item">
+            <div class="legend-color available"></div>
+            <span>Available</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color reserved"></div>
+            <span>Reserved</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color building"></div>
+            <span>Building</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color path"></div>
+            <span>Pathway</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card feature-card p-4 h-100">
+        <h4 class="mb-3">
+          <i class="fas fa-chart-pie me-2"></i>
+          Today's Availability
+        </h4>
+        {% set total_spots = spots_by_number|length %}
+        {% set reserved_spots = spots_by_number.values()|selectattr('reservation')|list|length %}
+        {% set available_spots = total_spots - reserved_spots %}
+        
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-number text-success">{{ available_spots }}</div>
+            <div class="stat-label">Available</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number text-danger">{{ reserved_spots }}</div>
+            <div class="stat-label">Reserved</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Parking Grid Map -->
+  <div class="card feature-card p-4 slide-up-delay">
+    <div class="parking-map-container">
+      <div class="spot-grid-map">
+        {% for row in layout_grid %}
+          <div class="grid-row">
+            {% for cell in row %}
+              {% set spot_info = spots_by_number.get(cell) %}
+              {% if cell and spot_info %}
+                {% set spot = spot_info.spot %}
+                {% set reservation = spot_info.reservation %}
+                <div class="spot-wrapper">
+                  <form method="POST" action="{{ '/release_spot' if reservation else '/reserve_spot' }}">
+                    <input type="hidden" name="spot_id" value="{{ spot.id }}">
+                    <input type="hidden" name="selected_date" value="{{ selected_date }}">
+                    <button
+                      class="parking-spot {{ 'reserved' if reservation else 'available' }}"
+                      title="{% if reservation %}Reserved by {{ reservation.user.username if reservation.user else 'Someone' }}{% else %}Available - Click to reserve{% endif %}"
+                      {% if reservation and reservation.user_id != current_user.id and current_user.role != 'teacher' %}disabled{% endif %}
+                    >
+                      {% if reservation %}
+                        <i class="fas fa-times"></i>
+                      {% else %}
+                        <i class="fas fa-plus"></i>
+                      {% endif %}
+                    </button>
+                  </form>
+                </div>
+              {% else %}
+                {% if cell.lower() == "building" %}
+                  <div class="map-element building">
+                    <i class="fas fa-building"></i>
+                  </div>
+                {% elif cell.lower() == "fence" %}
+                  <div class="map-element fence"></div>
+                {% elif cell.lower() == "path" %}
+                  <div class="map-element path"></div>
+                {% else %}
+                  <div class="map-element empty"></div>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          </div>
         {% endfor %}
       </div>
-    {% endfor %}
+    </div>
   </div>
 </div>
 
 <style>
+/* Layout */
+.welcome-container {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+}
+
+/* Header */
 .hero-section {
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-  border-radius: 1rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    border-radius: 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    text-align: center;
 }
 
-.date-selector span {
-  font-size: 1.25rem;
-  color: #fff;
+.dashboard-icon {
+    font-size: 3rem;
+    color: #00c6ff;
 }
 
-/* Grid Layout */
+/* Feature Cards */
+.feature-card {
+    background: linear-gradient(to right, #3f51b5cc, #2196f3cc);
+    border-radius: 1rem;
+    backdrop-filter: blur(6px);
+    border: none;
+    color: white;
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Date Selector */
+.date-selector {
+    gap: 2rem;
+}
+
+.date-nav {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.date-nav:hover:not(.disabled) {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: scale(1.1);
+}
+
+.date-nav.disabled {
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.date-display {
+    text-align: center;
+    padding: 1rem 2rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.selected-date {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+}
+
+.selected-date-detail {
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
+/* Legend */
+.legend {
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.legend-color.available {
+    background-color: #28a745;
+}
+
+.legend-color.reserved {
+    background-color: #dc3545;
+}
+
+.legend-color.building {
+    background-color: #495057;
+}
+
+.legend-color.path {
+    background-color: #6c757d;
+}
+
+/* Stats */
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    text-align: center;
+}
+
+.stat-item {
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+/* Parking Map */
+.parking-map-container {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 1rem;
+    padding: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 .spot-grid-map {
-  display: grid;
-  grid-template-rows: repeat(26, 40px);
-  justify-content: center;
+    display: grid;
+    grid-template-rows: repeat(26, 35px);
+    justify-content: center;
+    gap: 2px;
+    max-width: 100%;
+    overflow-x: auto;
 }
 
 .grid-row {
-  display: grid;
-  grid-template-columns: repeat(34, 40px);
+    display: grid;
+    grid-template-columns: repeat(34, 35px);
+    gap: 2px;
 }
 
-.spot {
-  width: 40px;
-  height: 40px;
-  border-radius: 6px;
-  text-align: center;
-  font-size: 0.65rem;
-  cursor: pointer;
-  border: none;
-  position: relative;
-  padding: 5px;
-  color: white;
-  overflow: hidden;
-  font-weight: bold;
+/* Parking Spots */
+.parking-spot {
+    width: 35px;
+    height: 35px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
 }
 
-.spot.available {
-  background-color: #28a745;
-  transition: background-color 0.3s ease;
-}
-.spot.available:hover {
-  background-color: #218838;
+.parking-spot.available {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
 }
 
-.spot.reserved {
-  background-color: #dc3545;
-  transition: opacity 0.3s ease;
-}
-.spot.reserved[disabled] {
-  cursor: not-allowed;
-  opacity: 0.6;
+.parking-spot.available:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 16px rgba(40, 167, 69, 0.5);
+    border-color: rgba(255, 255, 255, 0.6);
 }
 
-.spot.empty {
-  background-color: transparent;
-  width: 40px;
-  height: 40px;
+.parking-spot.reserved {
+    background: linear-gradient(135deg, #dc3545, #e74c3c);
+    color: white;
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
 }
 
-.spot.building { background-color: #444; border-radius: 0; }
-.spot.fence { background-color: #666; border-radius: 0; }
-.spot.path { background-color: #999; border-radius: 0; }
+.parking-spot.reserved:hover:not([disabled]) {
+    transform: scale(1.1);
+    box-shadow: 0 4px 16px rgba(220, 53, 69, 0.5);
+    border-color: rgba(255, 255, 255, 0.6);
+}
 
-.x {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 1.2rem;
-  color: white;
-  pointer-events: none;
+.parking-spot.reserved[disabled] {
+    cursor: not-allowed;
+    opacity: 0.6;
+    filter: grayscale(30%);
+}
+
+/* Map Elements */
+.map-element {
+    width: 35px;
+    height: 35px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.map-element.building {
+    background: linear-gradient(135deg, #495057, #343a40);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.map-element.fence {
+    background: linear-gradient(135deg, #6c757d, #495057);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.map-element.path {
+    background: rgba(108, 117, 125, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.map-element.empty {
+    background: transparent;
 }
 
 .spot-wrapper {
-  padding: 2px;
-  box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
+
 .spot-wrapper form {
-  margin: 0;
+    margin: 0;
+    display: flex;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .welcome-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+    
+    .spot-grid-map {
+        grid-template-rows: repeat(26, 30px);
+    }
+    
+    .grid-row {
+        grid-template-columns: repeat(34, 30px);
+    }
+    
+    .parking-spot, .map-element {
+        width: 30px;
+        height: 30px;
+        font-size: 0.7rem;
+    }
+    
+    .parking-map-container {
+        padding: 1rem;
+        overflow-x: auto;
+    }
+    
+    .date-selector {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 576px) {
+    .legend {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .selected-date {
+        font-size: 1.5rem;
+    }
 }
 
 /* Animations */
 .fade-in {
-  animation: fadeIn 1s ease-in;
+    animation: fadeIn 1s ease-in;
 }
-.slide-up {
-  animation: slideUp 0.8s ease-out;
-}
+
 .slide-up-delay {
-  animation: slideUp 0.8s ease-out 0.3s backwards;
+    animation: slideUp 0.8s ease-out 0.3s backwards;
 }
+
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
+
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Status Colors */
+.text-success {
+    color: #00ff7f !important;
+}
+
+.text-danger {
+    color: #ff4c4c !important;
 }
 </style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 {% endblock %}
 
 

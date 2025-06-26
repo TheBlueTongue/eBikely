@@ -1,41 +1,328 @@
 {% extends "base.html" %}
 {% block title %}Your License - eBikely{% endblock %}
+
 {% block content %}
-<div class="container py-5">
-  <h2 class="text-center mb-4">eBike License Status</h2>
-
-  {% if licensed %}
-    <div class="alert alert-success text-center">
-      ✅ You are fully licensed to use the e-bike system.
-    </div>
-    {% if reports and reports|length > 0 %}
-      <div class="card mt-4">
-        <div class="card-header">Incident Reports</div>
-        <ul class="list-group list-group-flush">
-          {% for report in reports %}
-            <li class="list-group-item">
-              <strong>{{ report.date_reported.strftime('%d %b %Y') }}:</strong> {{ report.description }}
-            </li>
-          {% endfor %}
-        </ul>
-      </div>
-    {% else %}
-      <p class="text-muted text-center mt-3">No incident reports on file.</p>
-    {% endif %}
-
-  {% elif awaiting_approval %}
-    <div class="alert alert-info text-center">
-      ✅ You passed the test! A teacher will need to approve your license before you can use the system.
+<div class="container welcome-container">
+    <!-- Header Section -->
+    <div class="hero-section card text-white p-5 mb-5 fade-in">
+        <div class="text-center">
+            <i class="fas fa-id-card dashboard-icon mb-3"></i>
+            <h1 class="display-4 mb-3">eBike License Status</h1>
+            <p class="lead mb-0">Your current licensing and safety record</p>
+        </div>
     </div>
 
-  {% elif show_real_test_button %}
-    <div class="alert alert-warning text-center">
-      ⚠️ You do not yet have a license. You must pass the safety test and be approved by a teacher.
-    </div>
-    <div class="text-center">
-      <a href="{{ url_for('real_test') }}" class="btn btn-primary mt-3">Take the Real Test</a>
-    </div>
+    <div class="row slide-up-delay g-4 justify-content-center">
+        <div class="col-lg-8">
+            {% if licensed %}
+                <!-- Licensed Status -->
+                <div class="card feature-card p-4 mb-4">
+                    <div class="license-card text-center">
+                        <div class="license-icon mb-3">
+                            <i class="fas fa-check-circle fa-4x text-success"></i>
+                        </div>
+                        <h2 class="license-title mb-3">✅ Fully Licensed</h2>
+                        <p class="license-description">You are authorized to use the e-bike system and all associated facilities.</p>
+                        <div class="license-badge">
+                            <span class="badge bg-success fs-6 px-3 py-2">Active License</span>
+                        </div>
+                    </div>
+                </div>
 
-  {% endif %}
+                <!-- Incident Reports Section -->
+                {% if reports and reports|length > 0 %}
+                    <div class="card feature-card p-4">
+                        <h3 class="mb-4">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Incident Reports
+                        </h3>
+                        <div class="incident-grid">
+                            {% for report in reports %}
+                                <div class="incident-card">
+                                    <div class="incident-date">
+                                        <i class="fas fa-calendar-alt me-2"></i>
+                                        {{ report.date_reported.strftime('%B %d, %Y') }}
+                                    </div>
+                                    <div class="incident-description">
+                                        {{ report.description }}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="card feature-card p-4">
+                        <div class="empty-state text-center py-4">
+                            <div class="empty-icon mb-3">
+                                <i class="fas fa-shield-alt fa-3x opacity-50"></i>
+                            </div>
+                            <h4 class="mb-2">Clean Safety Record</h4>
+                            <p class="opacity-75 mb-0">No incident reports on file. Keep up the safe riding!</p>
+                        </div>
+                    </div>
+                {% endif %}
+
+            {% elif awaiting_approval %}
+                <!-- Awaiting Approval Status -->
+                <div class="card feature-card p-4">
+                    <div class="license-card text-center">
+                        <div class="license-icon mb-3">
+                            <i class="fas fa-clock fa-4x text-warning"></i>
+                        </div>
+                        <h2 class="license-title mb-3">🎉 Test Passed!</h2>
+                        <p class="license-description mb-4">Congratulations! You've successfully passed the safety test. Your license is currently pending teacher approval.</p>
+                        <div class="license-badge">
+                            <span class="badge bg-warning fs-6 px-3 py-2">Pending Approval</span>
+                        </div>
+                        <div class="approval-note mt-4 p-3">
+                            <small class="opacity-75">
+                                <i class="fas fa-info-circle me-1"></i>
+                                A teacher will review and approve your license shortly. You'll receive full access once approved.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+            {% elif show_real_test_button %}
+                <!-- Not Licensed Status -->
+                <div class="card feature-card p-4">
+                    <div class="license-card text-center">
+                        <div class="license-icon mb-3">
+                            <i class="fas fa-times-circle fa-4x text-danger"></i>
+                        </div>
+                        <h2 class="license-title mb-3">⚠️ License Required</h2>
+                        <p class="license-description mb-4">You need to pass the safety test and receive teacher approval before accessing the e-bike system.</p>
+                        <div class="license-badge mb-4">
+                            <span class="badge bg-danger fs-6 px-3 py-2">Not Licensed</span>
+                        </div>
+                        <div class="test-action">
+                            <a href="{{ url_for('real_test') }}" class="btn btn-primary btn-lg pulse">
+                                <i class="fas fa-clipboard-check me-2"></i>Take the Safety Test
+                            </a>
+                        </div>
+                        <div class="test-info mt-4 p-3">
+                            <small class="opacity-75">
+                                <i class="fas fa-lightbulb me-1"></i>
+                                The safety test covers e-bike operation, traffic rules, and safety protocols. You need 18/20 to pass.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
+
+<style>
+/* Layout */
+.welcome-container {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+}
+
+/* Cards */
+.hero-section {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    border-radius: 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+.feature-card {
+    background: linear-gradient(to right, #3f51b5cc, #2196f3cc);
+    border-radius: 1rem;
+    backdrop-filter: blur(6px);
+    border: none;
+    color: white;
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+/* License Card */
+.license-card {
+    padding: 2rem 1rem;
+}
+
+.license-icon {
+    margin-bottom: 1.5rem;
+}
+
+.license-title {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.license-description {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    line-height: 1.6;
+}
+
+.license-badge {
+    margin: 1.5rem 0;
+}
+
+.license-badge .badge {
+    border-radius: 25px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 0.7rem 1.5rem;
+}
+
+/* Test Action */
+.test-action {
+    margin: 2rem 0;
+}
+
+.test-info, .approval-note {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Incident Reports */
+.incident-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.incident-card {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 0.8rem;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.incident-card:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.incident-date {
+    font-weight: 600;
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin-bottom: 0.8rem;
+}
+
+.incident-description {
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+/* Empty State */
+.empty-state {
+    padding: 3rem 2rem;
+}
+
+.empty-icon {
+    opacity: 0.5;
+}
+
+/* Dashboard Icon */
+.dashboard-icon {
+    font-size: 3rem;
+    color: #00c6ff;
+}
+
+/* Buttons */
+.btn-primary {
+    background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+    border: none;
+    border-radius: 50px;
+    padding: 0.8rem 2rem;
+    font-size: 1.1rem;
+    color: white;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #0072ff 0%, #00c6ff 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 114, 255, 0.4);
+}
+
+/* Status Colors */
+.text-success {
+    color: #00ff7f !important;
+}
+
+.text-warning {
+    color: #ffc107 !important;
+}
+
+.text-danger {
+    color: #ff4c4c !important;
+}
+
+.bg-success {
+    background-color: #28a745 !important;
+}
+
+.bg-warning {
+    background-color: #ffc107 !important;
+    color: #000 !important;
+}
+
+.bg-danger {
+    background-color: #dc3545 !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .welcome-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+    
+    .license-card {
+        padding: 1.5rem 1rem;
+    }
+    
+    .license-title {
+        font-size: 1.8rem;
+    }
+    
+    .license-description {
+        font-size: 1rem;
+    }
+}
+
+/* Animations */
+.fade-in {
+    animation: fadeIn 1s ease-in;
+}
+
+.slide-up-delay {
+    animation: slideUp 0.8s ease-out 0.3s backwards;
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+</style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 {% endblock %}

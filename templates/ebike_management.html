@@ -4,57 +4,92 @@
 
 {% block content %}
 <div class="container welcome-container">
-    <div class="hero-section card text-white p-5 mb-4 fade-in">
-        <h1 class="display-4 mb-3">E-Bike Management</h1>
-        {% if passed_test %}
-            <p class="license-status success lead">✅ You have passed the real test and are eligible for a license.</p>
-        {% else %}
-            <p class="license-status danger lead">⚠️ You have not yet passed the real test. Complete the test to get your license.</p>
-        {% endif %}
+    <div class="hero-section card text-white p-5 mb-5 fade-in">
+        <div class="text-center">
+            <h1 class="display-4 mb-3">E-Bike Management</h1>
+            {% if passed_test %}
+                <p class="license-status success lead mb-0">✅ You have passed the real test and are eligible for a license.</p>
+            {% else %}
+                <p class="license-status danger lead mb-0">⚠️ You have not yet passed the real test. Complete the test to get your license.</p>
+            {% endif %}
+        </div>
     </div>
 
-    <div class="row slide-up-delay">
-        <div class="col-md-12 mb-4">
-            <div class="card feature-card p-4">
+    <div class="row slide-up-delay g-4">
+        <!-- Registered E-Bikes Section -->
+        <div class="col-lg-8">
+            <div class="card feature-card p-4 h-100">
                 {% if ebikes %}
-                    <h2 class="mb-3">Your Registered E-Bikes</h2>
-                    <div class="list-group">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2 class="mb-0">Your Registered E-Bikes</h2>
+                        <span class="badge bg-success fs-6">{{ ebikes|length }} bike{{ 's' if ebikes|length != 1 else '' }}</span>
+                    </div>
+                    <div class="ebike-grid">
                         {% for ebike in ebikes %}
-                            <div class="list-group-item text-white mb-3 p-3 bg-transparent" style="border: 1px solid rgba(255,255,255,0.2); border-radius: 1rem;">
-                                <h4>{{ ebike.model }}</h4>
-                                <p>Colour: {{ ebike.colour }}</p>
-                                <p>Serial Number: {{ ebike.serial_number }}</p>
-                                <p>Registered: {{ ebike.registration_date.strftime('%Y-%m-%d') }}</p>
-                                <form method="POST" class="mt-2 d-inline">
-                                    {{ form.hidden_tag() }}
-                                    <input type="hidden" name="delete_ebike_id" value="{{ ebike.id }}">
-                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                                </form>
+                            <div class="ebike-card">
+                                <div class="ebike-header">
+                                    <h4 class="ebike-model">{{ ebike.model }}</h4>
+                                    <form method="POST" class="d-inline">
+                                        {{ form.hidden_tag() }}
+                                        <input type="hidden" name="delete_ebike_id" value="{{ ebike.id }}">
+                                        <button type="submit" class="btn btn-danger btn-sm delete-btn" 
+                                                onclick="return confirm('Are you sure you want to delete this e-bike?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                                <div class="ebike-details">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Colour:</span>
+                                        <span class="detail-value">{{ ebike.colour }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Serial Number:</span>
+                                        <span class="detail-value">{{ ebike.serial_number }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Registered:</span>
+                                        <span class="detail-value">{{ ebike.registration_date.strftime('%B %d, %Y') }}</span>
+                                    </div>
+                                </div>
                             </div>
                         {% endfor %}
                     </div>
                 {% else %}
-                    <h2>No E-Bikes Registered</h2>
-                    <p>You haven’t registered an e-bike yet. Fill in the form below to get started.</p>
+                    <div class="empty-state text-center py-5">
+                        <div class="empty-icon mb-3">
+                            <i class="fas fa-bicycle fa-3x"></i>
+                        </div>
+                        <h3 class="mb-3">No E-Bikes Registered</h3>
+                        <p class="lead opacity-75">You haven't registered an e-bike yet. Fill in the form to get started.</p>
+                    </div>
                 {% endif %}
             </div>
         </div>
 
-        <div class="col-md-12">
-            <div class="card feature-card p-4">
-                <h2 class="mb-3">Register a New E-Bike</h2>
-                <form method="POST">
+        <!-- Registration Form Section -->
+        <div class="col-lg-4">
+            <div class="card feature-card p-4 h-100">
+                <h2 class="mb-4 text-center">Register New E-Bike</h2>
+                <form method="POST" class="registration-form">
                     {{ form.hidden_tag() }}
-                    <div class="form-group mb-3">
+                    <div class="form-floating mb-3">
                         {{ form.model(class="form-control custom-input", placeholder="E-Bike Model") }}
+                        <label for="{{ form.model.id }}">E-Bike Model</label>
                     </div>
-                    <div class="form-group mb-3">
+                    <div class="form-floating mb-3">
                         {{ form.serial_number(class="form-control custom-input", placeholder="Serial Number") }}
+                        <label for="{{ form.serial_number.id }}">Serial Number</label>
                     </div>
-                    <div class="form-group mb-4">
+                    <div class="form-floating mb-4">
                         {{ form.colour(class="form-control custom-input", placeholder="Colour") }}
+                        <label for="{{ form.colour.id }}">Colour</label>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-lg pulse">Register E-Bike</button>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg pulse">
+                            <i class="fas fa-plus me-2"></i>Register E-Bike
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -85,7 +120,105 @@
     transition: transform 0.3s ease;
 }
 .feature-card:hover {
-    transform: translateY(-8px);
+    transform: translateY(-5px);
+}
+
+/* E-bike Cards */
+.ebike-grid {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.ebike-card {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.ebike-card:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.ebike-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.ebike-model {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 600;
+}
+
+.ebike-details {
+    display: grid;
+    gap: 0.8rem;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.detail-label {
+    font-weight: 500;
+    opacity: 0.8;
+    font-size: 0.95rem;
+}
+
+.detail-value {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.delete-btn {
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+/* Empty State */
+.empty-state {
+    padding: 3rem 2rem;
+}
+
+.empty-icon {
+    opacity: 0.5;
+}
+
+/* Badge */
+.badge {
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+}
+
+/* Form Floating Labels */
+.form-floating {
+    position: relative;
+}
+
+.form-floating > label {
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 500;
+}
+
+.form-floating > .form-control:focus ~ label,
+.form-floating > .form-control:not(:placeholder-shown) ~ label {
+    color: white;
+    opacity: 1;
 }
 
 /* Buttons and Inputs */
@@ -96,19 +229,40 @@
     padding: 0.8rem 2rem;
     font-size: 1.1rem;
     color: white;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #0072ff 0%, #00c6ff 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 114, 255, 0.4);
 }
 
 .btn-danger {
     background-color: #ff4c4c;
     border: none;
-    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.btn-danger:hover {
+    background-color: #ff3333;
+    transform: scale(1.05);
 }
 
 .custom-input {
     border-radius: 50px;
     background: rgba(255, 255, 255, 0.95);
-    border: none;
-    padding-left: 1.5rem;
+    border: 2px solid transparent;
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.custom-input:focus {
+    background: rgba(255, 255, 255, 1);
+    border-color: #00c6ff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 198, 255, 0.25);
 }
 
 /* Status */
@@ -120,6 +274,26 @@
 }
 .license-status.danger {
     color: #ff4c4c;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .ebike-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .detail-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.3rem;
+    }
+    
+    .welcome-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
 }
 
 /* Animations */
@@ -134,8 +308,8 @@
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 @keyframes slideUp {
     from { opacity: 0; transform: translateY(30px); }
@@ -143,7 +317,7 @@
 }
 @keyframes pulse {
     0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
+    50% { transform: scale(1.02); }
     100% { transform: scale(1); }
 }
 </style>
