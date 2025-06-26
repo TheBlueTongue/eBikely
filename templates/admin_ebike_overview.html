@@ -1,33 +1,459 @@
 {% extends "base.html" %}
 {% block title %}E-bike Overview - Admin{% endblock %}
+
 {% block content %}
-<div class="container py-4">
-  <h2 class="mb-4">📋 Registered E-bikes Overview</h2>
-  {% if ebikes %}
-    <div class="table-responsive">
-      <table class="table table-bordered table-striped">
-        <thead class="thead-dark">
-          <tr>
-            <th>Owner</th>
-            <th>Model</th>
-            <th>Serial Number</th>
-            <th>Colour</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for ebike in ebikes %}
-            <tr>
-              <td>{{ ebike.owner.username }} (Year {{ ebike.owner.year }}, {{ ebike.owner.house }})</td>
-              <td>{{ ebike.model }}</td>
-              <td>{{ ebike.serial_number }}</td>
-              <td>{{ ebike.colour }}</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+<div class="container welcome-container">
+  <!-- Header Section -->
+  <div class="hero-section card text-white p-5 mb-5 fade-in">
+    <div class="text-center">
+      <i class="fas fa-bicycle dashboard-icon mb-3"></i>
+      <h1 class="display-4 mb-3">E-bike Overview</h1>
+      <p class="lead mb-0">Complete overview of all registered e-bikes in the system</p>
     </div>
-  {% else %}
-    <p>No e-bikes registered yet.</p>
-  {% endif %}
+  </div>
+
+  <!-- Statistics Section -->
+  <div class="row slide-up-delay g-4 mb-5">
+    <div class="col-md-4">
+      <div class="card feature-card p-4 text-center">
+        <div class="stat-icon mb-3">
+          <i class="fas fa-bicycle fa-3x text-success"></i>
+        </div>
+        <h3 class="stat-number">{{ ebikes|length }}</h3>
+        <h5 class="stat-label">Total E-bikes</h5>
+        <p class="stat-description">Registered in the system</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card feature-card p-4 text-center">
+        <div class="stat-icon mb-3">
+          <i class="fas fa-users fa-3x text-primary"></i>
+        </div>
+        <h3 class="stat-number">{{ ebikes|map(attribute='owner')|unique|list|length }}</h3>
+        <h5 class="stat-label">Active Owners</h5>
+        <p class="stat-description">Students with e-bikes</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card feature-card p-4 text-center">
+        <div class="stat-icon mb-3">
+          <i class="fas fa-palette fa-3x text-info"></i>
+        </div>
+        <h3 class="stat-number">{{ ebikes|map(attribute='colour')|unique|list|length }}</h3>
+        <h5 class="stat-label">Color Varieties</h5>
+        <p class="stat-description">Different e-bike colors</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- E-bikes List -->
+  <div class="card feature-card p-4 slide-up-delay">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h3 class="mb-0">
+        <i class="fas fa-list me-2"></i>
+        Registered E-bikes
+      </h3>
+      <div class="search-controls">
+        <input type="text" id="searchInput" class="form-control search-input" placeholder="Search by owner, model, or color...">
+      </div>
+    </div>
+
+    {% if ebikes %}
+      <div class="ebikes-grid" id="ebikesGrid">
+        {% for ebike in ebikes %}
+          <div class="ebike-card" data-search="{{ ebike.owner.username|lower }} {{ ebike.model|lower }} {{ ebike.colour|lower }} {{ ebike.serial_number|lower }}">
+            <div class="ebike-header">
+              <div class="owner-info">
+                <div class="owner-avatar">
+                  <i class="fas fa-user"></i>
+                </div>
+                <div class="owner-details">
+                  <h5 class="owner-name">{{ ebike.owner.username }}</h5>
+                  <p class="owner-meta">Year {{ ebike.owner.year }} • {{ ebike.owner.house }}</p>
+                </div>
+              </div>
+              <div class="ebike-status">
+                <span class="status-badge active">
+                  <i class="fas fa-check-circle"></i> Registered
+                </span>
+              </div>
+            </div>
+            
+            <div class="ebike-details">
+              <div class="detail-item">
+                <div class="detail-icon">
+                  <i class="fas fa-cog"></i>
+                </div>
+                <div class="detail-content">
+                  <span class="detail-label">Model</span>
+                  <span class="detail-value">{{ ebike.model }}</span>
+                </div>
+              </div>
+              
+              <div class="detail-item">
+                <div class="detail-icon">
+                  <i class="fas fa-barcode"></i>
+                </div>
+                <div class="detail-content">
+                  <span class="detail-label">Serial Number</span>
+                  <span class="detail-value">{{ ebike.serial_number }}</span>
+                </div>
+              </div>
+              
+              <div class="detail-item">
+                <div class="detail-icon">
+                  <i class="fas fa-palette"></i>
+                </div>
+                <div class="detail-content">
+                  <span class="detail-label">Color</span>
+                  <span class="detail-value">
+                    <span class="color-indicator" data-color="{{ ebike.colour|lower }}"></span>
+                    {{ ebike.colour }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state text-center py-5">
+        <div class="empty-icon mb-4">
+          <i class="fas fa-bicycle fa-4x opacity-50"></i>
+        </div>
+        <h4 class="mb-3">No E-bikes Registered</h4>
+        <p class="opacity-75 mb-4">No students have registered their e-bikes yet.</p>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-light">
+          <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
+      </div>
+    {% endif %}
+  </div>
 </div>
+
+<style>
+/* Layout */
+.welcome-container {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+}
+
+/* Header */
+.hero-section {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    border-radius: 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+.dashboard-icon {
+    font-size: 3rem;
+    color: #00c6ff;
+}
+
+/* Feature Cards */
+.feature-card {
+    background: linear-gradient(to right, #3f51b5cc, #2196f3cc);
+    border-radius: 1rem;
+    backdrop-filter: blur(6px);
+    border: none;
+    color: white;
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Statistics */
+.stat-icon {
+    margin-bottom: 1rem;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #00c6ff;
+}
+
+.stat-label {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    opacity: 0.9;
+}
+
+.stat-description {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+/* Search */
+.search-controls {
+    min-width: 300px;
+}
+
+.search-input {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 25px;
+    color: white;
+    padding: 0.5rem 1rem;
+}
+
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.search-input:focus {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.6);
+    box-shadow: none;
+    color: white;
+}
+
+/* E-bikes Grid */
+.ebikes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 1.5rem;
+}
+
+.ebike-card {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.ebike-card:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* E-bike Header */
+.ebike-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.owner-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.owner-avatar {
+    width: 50px;
+    height: 50px;
+    background: rgba(0, 198, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #00c6ff;
+    font-size: 1.2rem;
+}
+
+.owner-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+    color: white;
+}
+
+.owner-meta {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin: 0;
+}
+
+.status-badge {
+    background: rgba(0, 255, 127, 0.2);
+    color: #00ff7f;
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border: 1px solid rgba(0, 255, 127, 0.3);
+}
+
+/* E-bike Details */
+.ebike-details {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.detail-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.8);
+    flex-shrink: 0;
+}
+
+.detail-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.detail-label {
+    font-size: 0.8rem;
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.detail-value {
+    font-size: 1rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.color-indicator {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    display: inline-block;
+}
+
+/* Empty State */
+.empty-state {
+    padding: 4rem 2rem;
+}
+
+.empty-icon {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+/* Status Colors */
+.text-success {
+    color: #00ff7f !important;
+}
+
+.text-primary {
+    color: #00c6ff !important;
+}
+
+.text-info {
+    color: #17a2b8 !important;
+}
+
+/* Buttons */
+.btn-outline-light {
+    border-color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.9);
+    transition: all 0.3s ease;
+}
+
+.btn-outline-light:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.8);
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .welcome-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+    
+    .ebikes-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .search-controls {
+        min-width: 100%;
+        margin-top: 1rem;
+    }
+    
+    .ebike-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+    }
+}
+
+/* Animations */
+.fade-in {
+    animation: fadeIn 1s ease-in;
+}
+
+.slide-up-delay {
+    animation: slideUp 0.8s ease-out 0.3s backwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<script>
+// Search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const ebikesGrid = document.getElementById('ebikesGrid');
+    
+    // Set color indicators
+    const colorIndicators = document.querySelectorAll('.color-indicator');
+    colorIndicators.forEach(indicator => {
+        const color = indicator.getAttribute('data-color');
+        if (color) {
+            indicator.style.backgroundColor = color;
+        }
+    });
+    
+    if (searchInput && ebikesGrid) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const ebikeCards = ebikesGrid.querySelectorAll('.ebike-card');
+            
+            ebikeCards.forEach(card => {
+                const searchData = card.getAttribute('data-search');
+                if (searchData.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    }
+});
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 {% endblock %}

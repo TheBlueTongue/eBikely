@@ -2,48 +2,311 @@
 {% block title %}Admin Dashboard - eBikely{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-  <h2 class="text-center mb-4">📊 Admin Dashboard</h2>
+<div class="container welcome-container">
+  <!-- Header Section -->
+  <div class="hero-section card text-white p-5 mb-5 fade-in">
+    <div class="text-center">
+      <i class="fas fa-user-shield dashboard-icon mb-3"></i>
+      <h1 class="display-4 mb-3">Admin Dashboard</h1>
+      <p class="lead mb-0">Manage students, licenses, and e-bike registrations</p>
+    </div>
+  </div>
 
-  <div class="row text-center">
-    <div class="col-md-6 col-lg-3 mb-4">
-      <div class="card shadow-sm border-left-primary h-100 py-3">
-        <div class="card-body">
-          <h5 class="card-title">Total Students</h5>
-          <p class="card-text display-5">{{ student_count }}</p>
+  <!-- Statistics Cards -->
+  <div class="row slide-up-delay g-4 mb-5">
+    <div class="col-lg-3 col-md-6">
+      <div class="card feature-card p-4 h-100">
+        <div class="stat-content text-center">
+          <div class="stat-icon mb-3">
+            <i class="fas fa-users fa-3x text-primary"></i>
+          </div>
+          <h3 class="stat-number mb-2">{{ student_count }}</h3>
+          <h5 class="stat-label mb-3">Total Students</h5>
+          <p class="stat-description">Registered student accounts in the system</p>
         </div>
       </div>
     </div>
 
-    <div class="col-md-6 col-lg-3 mb-4">
-      <div class="card shadow-sm border-left-warning h-100 py-3">
-        <div class="card-body">
-          <h5 class="card-title">Pending Licenses</h5>
-          <p class="card-text display-5">{{ pending_licenses }}</p>
-          <a href="{{ url_for('approve_licenses') }}" class="btn btn-sm btn-outline-primary mt-2">Review</a>
+    <div class="col-lg-3 col-md-6">
+      <div class="card feature-card p-4 h-100">
+        <div class="stat-content text-center">
+          <div class="stat-icon mb-3">
+            <i class="fas fa-clock fa-3x text-warning"></i>
+          </div>
+          <h3 class="stat-number mb-2">{{ pending_licenses }}</h3>
+          <h5 class="stat-label mb-3">Pending Licenses</h5>
+          <p class="stat-description mb-3">Students awaiting license approval</p>
+          <a href="{{ url_for('approve_licenses') }}" class="btn btn-outline-light btn-sm">
+            <i class="fas fa-check-circle me-2"></i>Review Applications
+          </a>
         </div>
       </div>
     </div>
 
-    <div class="col-md-6 col-lg-3 mb-4">
-      <div class="card shadow-sm border-left-success h-100 py-3">
-        <div class="card-body">
-          <h5 class="card-title">Registered E-Bikes</h5>
-          <p class="card-text display-5">{{ total_ebikes }}</p>
-          <a href="{{ url_for('ebike_management') }}" class="btn btn-sm btn-outline-secondary mt-2">View</a>
+    <div class="col-lg-3 col-md-6">
+      <div class="card feature-card p-4 h-100">
+        <div class="stat-content text-center">
+          <div class="stat-icon mb-3">
+            <i class="fas fa-bicycle fa-3x text-success"></i>
+          </div>
+          <h3 class="stat-number mb-2">{{ total_ebikes }}</h3>
+          <h5 class="stat-label mb-3">Registered E-Bikes</h5>
+          <p class="stat-description mb-3">Total e-bikes in the system</p>
+          <a href="{{ url_for('ebike_management') }}" class="btn btn-outline-light btn-sm">
+            <i class="fas fa-list me-2"></i>View All E-Bikes
+          </a>
         </div>
       </div>
     </div>
 
-    <div class="col-md-6 col-lg-3 mb-4">
-      <div class="card shadow-sm border-left-info h-100 py-3">
-        <div class="card-body">
-          <h5 class="card-title">Practice Attempts</h5>
-          <p class="card-text display-5">{{ total_practice_attempts }}</p>
-          <a href="{{ url_for('practice_selection') }}" class="btn btn-sm btn-outline-secondary mt-2">Details</a>
+    <div class="col-lg-3 col-md-6">
+      <div class="card feature-card p-4 h-100">
+        <div class="stat-content text-center">
+          <div class="stat-icon mb-3">
+            <i class="fas fa-chart-line fa-3x text-info"></i>
+          </div>
+          <h3 class="stat-number mb-2">{{ total_practice_attempts }}</h3>
+          <h5 class="stat-label mb-3">Practice Attempts</h5>
+          <p class="stat-description mb-3">Total quiz attempts by students</p>
+          <a href="{{ url_for('practice_selection') }}" class="btn btn-outline-light btn-sm">
+            <i class="fas fa-chart-bar me-2"></i>View Details
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions Section -->
+  <div class="row slide-up-delay">
+    <div class="col-12">
+      <div class="card feature-card p-4">
+        <h3 class="mb-4">
+          <i class="fas fa-bolt me-2"></i>
+          Quick Actions
+        </h3>
+        <div class="row g-3">
+          <div class="col-lg-4 col-md-6">
+            <a href="{{ url_for('approve_licenses') }}" class="quick-action-card">
+              <div class="action-icon">
+                <i class="fas fa-user-check"></i>
+              </div>
+              <div class="action-content">
+                <h5>Approve Licenses</h5>
+                <p>Review and approve student license applications</p>
+              </div>
+            </a>
+          </div>
+          <div class="col-lg-4 col-md-6">
+            <a href="{{ url_for('admin_ebike_overview') }}" class="quick-action-card">
+              <div class="action-icon">
+                <i class="fas fa-bicycle"></i>
+              </div>
+              <div class="action-content">
+                <h5>E-Bike Overview</h5>
+                <p>Manage all registered e-bikes and their owners</p>
+              </div>
+            </a>
+          </div>
+          <div class="col-lg-4 col-md-6">
+            <a href="{{ url_for('parking_spots') }}" class="quick-action-card">
+              <div class="action-icon">
+                <i class="fas fa-parking"></i>
+              </div>
+              <div class="action-content">
+                <h5>Parking Management</h5>
+                <p>View and manage parking spot reservations</p>
+              </div>
+            </a>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </div>
+
+<style>
+/* Layout */
+.welcome-container {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+}
+
+/* Header */
+.hero-section {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    border-radius: 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+.dashboard-icon {
+    font-size: 3rem;
+    color: #00c6ff;
+}
+
+/* Feature Cards */
+.feature-card {
+    background: linear-gradient(to right, #3f51b5cc, #2196f3cc);
+    border-radius: 1rem;
+    backdrop-filter: blur(6px);
+    border: none;
+    color: white;
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Statistics */
+.stat-content {
+    padding: 1rem 0;
+}
+
+.stat-icon {
+    margin-bottom: 1rem;
+}
+
+.stat-number {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #00c6ff;
+}
+
+.stat-label {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.8rem;
+    opacity: 0.9;
+}
+
+.stat-description {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    line-height: 1.4;
+}
+
+/* Quick Actions */
+.quick-action-card {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 0.8rem;
+    text-decoration: none;
+    color: white;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.quick-action-card:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    color: white;
+    text-decoration: none;
+}
+
+.action-icon {
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+    background: rgba(0, 198, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    font-size: 1.5rem;
+    color: #00c6ff;
+}
+
+.action-content h5 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.action-content p {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin: 0;
+}
+
+/* Status Colors */
+.text-primary {
+    color: #00c6ff !important;
+}
+
+.text-warning {
+    color: #ffc107 !important;
+}
+
+.text-success {
+    color: #00ff7f !important;
+}
+
+.text-info {
+    color: #17a2b8 !important;
+}
+
+/* Buttons */
+.btn-outline-light {
+    border-color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.9);
+    transition: all 0.3s ease;
+}
+
+.btn-outline-light:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.8);
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .welcome-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+    }
+    
+    .quick-action-card {
+        flex-direction: column;
+        text-align: center;
+        padding: 2rem 1rem;
+    }
+    
+    .action-icon {
+        margin-right: 0;
+        margin-bottom: 1rem;
+    }
+}
+
+/* Animations */
+.fade-in {
+    animation: fadeIn 1s ease-in;
+}
+
+.slide-up-delay {
+    animation: slideUp 0.8s ease-out 0.3s backwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 {% endblock %}

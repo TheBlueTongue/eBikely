@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard Preview - eBikely</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #1a1a1a;
+            color: white;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .section {
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .section h2 {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .old-style {
+            background: #f8f9fa;
+            color: #333;
+            padding: 2rem;
+            border-radius: 0.5rem;
+        }
+        
+        .old-card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            text-align: center;
+        }
+        
+        .border-left-primary { border-left: 4px solid #007bff; }
+        .border-left-warning { border-left: 4px solid #ffc107; }
+        .border-left-success { border-left: 4px solid #28a745; }
+        .border-left-info { border-left: 4px solid #17a2b8; }
+        
+        /* New Modern Style */
+        .welcome-container {
+            padding-top: 3rem;
+            padding-bottom: 3rem;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            border-radius: 1rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            color: white;
+            padding: 3rem 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .dashboard-icon {
+            font-size: 3rem;
+            color: #00c6ff;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card {
+            background: linear-gradient(to right, #3f51b5cc, #2196f3cc);
+            border-radius: 1rem;
+            backdrop-filter: blur(6px);
+            border: none;
+            color: white;
+            transition: transform 0.3s ease;
+            height: 100%;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-content {
+            padding: 1rem 0;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #00c6ff;
+        }
+
+        .stat-label {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+            opacity: 0.9;
+        }
+
+        .stat-description {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            line-height: 1.4;
+        }
+
+        .quick-action-card {
+            display: flex;
+            align-items: center;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 0.8rem;
+            text-decoration: none;
+            color: white;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 1rem;
+        }
+
+        .quick-action-card:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            color: white;
+            text-decoration: none;
+        }
+
+        .action-icon {
+            flex-shrink: 0;
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 198, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 1.5rem;
+            color: #00c6ff;
+        }
+
+        .text-primary { color: #00c6ff !important; }
+        .text-warning { color: #ffc107 !important; }
+        .text-success { color: #00ff7f !important; }
+        .text-info { color: #17a2b8 !important; }
+
+        .btn-outline-light {
+            border-color: rgba(255, 255, 255, 0.5);
+            color: rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-outline-light:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.8);
+            color: white;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid p-4">
+        <h1 style="text-align: center; margin-bottom: 3rem; color: #00c6ff;">Admin Dashboard Transformation</h1>
+        
+        <div class="comparison">
+            <div class="section">
+                <h2 style="color: #ff6b6b;">❌ BEFORE (Old Bootstrap Style)</h2>
+                <div class="old-style">
+                    <h2 class="text-center mb-4" style="color: #333;">📊 Admin Dashboard</h2>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <div class="old-card border-left-primary">
+                                <h5>Total Students</h5>
+                                <p style="font-size: 2rem; margin: 0;">42</p>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="old-card border-left-warning">
+                                <h5>Pending Licenses</h5>
+                                <p style="font-size: 2rem; margin: 0;">8</p>
+                                <button class="btn btn-sm btn-outline-primary">Review</button>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="old-card border-left-success">
+                                <h5>Registered E-Bikes</h5>
+                                <p style="font-size: 2rem; margin: 0;">156</p>
+                                <button class="btn btn-sm btn-outline-secondary">View</button>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="old-card border-left-info">
+                                <h5>Practice Attempts</h5>
+                                <p style="font-size: 2rem; margin: 0;">324</p>
+                                <button class="btn btn-sm btn-outline-secondary">Details</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 1rem; padding: 1rem; background: rgba(255, 107, 107, 0.1); border-radius: 0.5rem; border: 1px solid rgba(255, 107, 107, 0.3);">
+                    <strong>Issues:</strong> Plain Bootstrap styling, lacks visual hierarchy, no hero section, basic layout
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 style="color: #51cf66;">✅ AFTER (Modern Consistent Style)</h2>
+                <div class="welcome-container">
+                    <div class="hero-section">
+                        <i class="fas fa-user-shield dashboard-icon"></i>
+                        <h1 class="display-4 mb-3">Admin Dashboard</h1>
+                        <p class="lead mb-0">Manage students, licenses, and e-bike registrations</p>
+                    </div>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-6">
+                            <div class="card feature-card p-4 h-100">
+                                <div class="stat-content text-center">
+                                    <div class="stat-icon mb-3">
+                                        <i class="fas fa-users fa-3x text-primary"></i>
+                                    </div>
+                                    <h3 class="stat-number mb-2">42</h3>
+                                    <h5 class="stat-label mb-3">Total Students</h5>
+                                    <p class="stat-description">Registered student accounts</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-6">
+                            <div class="card feature-card p-4 h-100">
+                                <div class="stat-content text-center">
+                                    <div class="stat-icon mb-3">
+                                        <i class="fas fa-clock fa-3x text-warning"></i>
+                                    </div>
+                                    <h3 class="stat-number mb-2">8</h3>
+                                    <h5 class="stat-label mb-3">Pending Licenses</h5>
+                                    <p class="stat-description mb-3">Awaiting approval</p>
+                                    <a href="#" class="btn btn-outline-light btn-sm">
+                                        <i class="fas fa-check-circle me-2"></i>Review
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card feature-card p-4">
+                        <h3 class="mb-4">
+                            <i class="fas fa-bolt me-2"></i>
+                            Quick Actions
+                        </h3>
+                        <div class="row">
+                            <div class="col-12 mb-2">
+                                <a href="#" class="quick-action-card">
+                                    <div class="action-icon">
+                                        <i class="fas fa-user-check"></i>
+                                    </div>
+                                    <div class="action-content">
+                                        <h5>Approve Licenses</h5>
+                                        <p>Review and approve student applications</p>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 1rem; padding: 1rem; background: rgba(81, 207, 102, 0.1); border-radius: 0.5rem; border: 1px solid rgba(81, 207, 102, 0.3);">
+                    <strong>Improvements:</strong> Hero section, modern gradients, consistent with other pages, better UX
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 3rem; padding: 2rem; background: rgba(81, 207, 102, 0.1); border-radius: 1rem; border: 1px solid rgba(81, 207, 102, 0.3);">
+            <h3 style="color: #51cf66; font-size: 1.5rem; margin-bottom: 1rem;">🎯 Admin Dashboard Modernized!</h3>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1rem 0; text-align: left;">
+                <div>
+                    <h4 style="color: #00c6ff; margin-bottom: 0.5rem;">🎨 Consistent Styling</h4>
+                    <p style="font-size: 0.9rem; opacity: 0.9;">Matches dashboard and other pages with hero section and feature cards</p>
+                </div>
+                <div>
+                    <h4 style="color: #00c6ff; margin-bottom: 0.5rem;">📊 Enhanced Stats</h4>
+                    <p style="font-size: 0.9rem; opacity: 0.9;">Large icons, better typography, and descriptive content</p>
+                </div>
+                <div>
+                    <h4 style="color: #00c6ff; margin-bottom: 0.5rem;">⚡ Quick Actions</h4>
+                    <p style="font-size: 0.9rem; opacity: 0.9;">Easy access to common admin tasks with visual icons</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
