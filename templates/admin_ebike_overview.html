@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}E-bike Overview - Admin{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <h2 class="mb-4">📋 Registered E-bikes Overview</h2>
+  {% if ebikes %}
+    <div class="table-responsive">
+      <table class="table table-bordered table-striped">
+        <thead class="thead-dark">
+          <tr>
+            <th>Owner</th>
+            <th>Model</th>
+            <th>Serial Number</th>
+            <th>Colour</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ebike in ebikes %}
+            <tr>
+              <td>{{ ebike.owner.username }} (Year {{ ebike.owner.year }}, {{ ebike.owner.house }})</td>
+              <td>{{ ebike.model }}</td>
+              <td>{{ ebike.serial_number }}</td>
+              <td>{{ ebike.colour }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p>No e-bikes registered yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

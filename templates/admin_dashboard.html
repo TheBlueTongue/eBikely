@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard - eBikely{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <h2 class="text-center mb-4">📊 Admin Dashboard</h2>
+
+  <div class="row text-center">
+    <div class="col-md-6 col-lg-3 mb-4">
+      <div class="card shadow-sm border-left-primary h-100 py-3">
+        <div class="card-body">
+          <h5 class="card-title">Total Students</h5>
+          <p class="card-text display-5">{{ student_count }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3 mb-4">
+      <div class="card shadow-sm border-left-warning h-100 py-3">
+        <div class="card-body">
+          <h5 class="card-title">Pending Licenses</h5>
+          <p class="card-text display-5">{{ pending_licenses }}</p>
+          <a href="{{ url_for('approve_licenses') }}" class="btn btn-sm btn-outline-primary mt-2">Review</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3 mb-4">
+      <div class="card shadow-sm border-left-success h-100 py-3">
+        <div class="card-body">
+          <h5 class="card-title">Registered E-Bikes</h5>
+          <p class="card-text display-5">{{ total_ebikes }}</p>
+          <a href="{{ url_for('ebike_management') }}" class="btn btn-sm btn-outline-secondary mt-2">View</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3 mb-4">
+      <div class="card shadow-sm border-left-info h-100 py-3">
+        <div class="card-body">
+          <h5 class="card-title">Practice Attempts</h5>
+          <p class="card-text display-5">{{ total_practice_attempts }}</p>
+          <a href="{{ url_for('practice_selection') }}" class="btn btn-sm btn-outline-secondary mt-2">Details</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

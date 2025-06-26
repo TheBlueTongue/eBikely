@@ -1,32 +1,21 @@
-from flask import Flask, render_template, redirect, url_for, flash, request
+from flask import Flask, render_template, redirect, url_for, flash, request, session as flask_session
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
-from database_setup import SessionLocal, User, EBike, PracticeTest, RealTest, ParkingSpot, PracticeAttempt, PracticeQuestion, RealTestAttempt, PracticeTest, ParkingReservation, RealTestQuestion, IncidentReport
+from database_setup import (SessionLocal, User, EBike, PracticeTest, RealTest, ParkingSpot, 
+                           PracticeAttempt, PracticeQuestion, RealTestAttempt, ParkingReservation, 
+                           RealTestQuestion, IncidentReport, Base, engine, seed_data)
 import forms
-from datetime import datetime
-from flask import Flask
-from flask.cli import with_appcontext
-from database_setup import SessionLocal, PracticeTest, PracticeQuestion, Area
-import click
-import random
-from collections import defaultdict
-from flask_login import login_required, current_user
 from datetime import datetime, date, timedelta
 import os
 import pandas as pd
-from sqlalchemy.orm import joinedload
-from flask import Flask, render_template, request, redirect, url_for, flash, session as flask_session
-from flask_login import login_required, current_user
 import random
-from flask import abort
-from database_setup import Base, engine, seed_data  # Import seed_data here
 
 
 
 # Set up Flask app and login manager
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your_secret_key12345asdfg'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or 'your_secret_key12345asdfg_change_in_production'
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'  # Redirect to login page if user is not authenticated
@@ -98,21 +87,43 @@ def logout():
 @login_required
 def dashboard():
     session = SessionLocal()
+
+    if current_user.role == 'teacher':
+        student_count = session.query(User).filter_by(role='student').count()
+        pending_licenses = session.query(User).join(RealTestAttempt).filter(
+            User.role == 'student',
+            User.has_license == False,
+            RealTestAttempt.passed == True
+        ).distinct().count()
+        total_ebikes = session.query(EBike).count()
+        total_practice_attempts = session.query(PracticeAttempt).count()
+
+        session.close()
+        return render_template(
+            'admin_dashboard.html',
+            student_count=student_count,
+            pending_licenses=pending_licenses,
+            total_ebikes=total_ebikes,
+            total_practice_attempts=total_practice_attempts
+        )
+
+    # Student dashboard view
     ebike_count = session.query(EBike).filter_by(owner_id=current_user.id).count()
     completed_practice_tests = session.query(PracticeAttempt).filter(
         PracticeAttempt.user_id == current_user.id,
         PracticeAttempt.score >= 80
     ).count()
-    total_tests = session.query(RealTest).filter_by(user_id=current_user.id).count()
+    total_real_test_attempts = session.query(RealTestAttempt).filter_by(user_id=current_user.id).count()
     available_parking_spots = session.query(ParkingSpot).filter_by(is_available=True).count()
-    practice_tests = session.query(PracticeTest).filter_by(user_id=current_user.id).all()
+    practice_tests = session.query(PracticeTest).all()  # Show all available practice tests
+
     session.close()
     return render_template(
         'dashboard.html',
         ebike_count=ebike_count,
         completed_practice_tests=completed_practice_tests,
         available_parking_spots=available_parking_spots,
-        total_tests=total_tests,
+        total_real_test_attempts=total_real_test_attempts,
         practice_tests=practice_tests
     )
 
@@ -121,24 +132,28 @@ def dashboard():
 def ebike_management():
     session = SessionLocal()
 
-    # Restrict students who don't have a license
-    if current_user.role == 'student':
-        has_license = current_user.has_license  # already loaded by Flask-Login
-        if not has_license:
-            flash("You must pass the test and be approved by a teacher before registering an e-bike.", "warning")
-            session.close()
-            return redirect(url_for('dashboard'))
+    if current_user.role == 'teacher':
+        # Teachers see an overview of all student e-bikes
+        all_ebikes = session.query(EBike).join(User).filter(User.role == 'student').all()
+        session.close()
+        return render_template('admin_ebike_overview.html', ebikes=all_ebikes)
+
+    # For students, restrict access if not licensed
+    if not current_user.has_license:
+        flash("You must pass the test and be approved by a teacher before registering an e-bike.", "warning")
+        session.close()
+        return redirect(url_for('dashboard'))
 
     form = forms.EbikeRegistrationForm()
     ebikes = session.query(EBike).filter_by(owner_id=current_user.id).all()
 
-    # Check if the user has passed the real test (optional: you may remove this if not needed anymore)
+    # Check if the student passed the test (used for template)
     passed_test = session.query(RealTestAttempt).filter(
         RealTestAttempt.user_id == current_user.id,
         RealTestAttempt.passed == True
     ).count() > 0
 
-    # Handle e-bike registration
+    # Register new e-bike
     if form.validate_on_submit():
         new_ebike = EBike(
             owner_id=current_user.id,
@@ -155,7 +170,7 @@ def ebike_management():
             flash('This serial number is already registered. Please use a unique serial number.', 'danger')
         return redirect(url_for('ebike_management'))
 
-    # Handle e-bike deletion
+    # Delete e-bike
     if request.method == 'POST' and 'delete_ebike_id' in request.form:
         ebike_id = int(request.form.get('delete_ebike_id'))
         ebike_to_delete = session.query(EBike).filter_by(id=ebike_id, owner_id=current_user.id).first()
@@ -168,6 +183,17 @@ def ebike_management():
     session.close()
     return render_template('ebike_management.html', ebikes=ebikes, form=form, passed_test=passed_test)
 
+@app.route('/admin/ebikes')
+@login_required
+def admin_ebike_overview():
+    if current_user.role != 'teacher':
+        flash("Access denied.", "danger")
+        return redirect(url_for('dashboard'))
+
+    session = SessionLocal()
+    all_ebikes = session.query(EBike).join(User).filter(User.role == 'student').all()
+    session.close()
+    return render_template('admin_ebike_overview.html', ebikes=all_ebikes)
 
 
 @app.route('/reserve_spot', methods=['POST'])
@@ -433,9 +459,9 @@ def practice_quiz(test_id):
             if correct:
                 score += 1
             option_labels = ['A', 'B', 'C', 'D']
-            parsed_options = question.options.split(',')
+            parsed_options = [opt.strip() for opt in question.options.split(',')]
 
-                        # Map label to option (A: "Go", B: "Slow down", etc.)
+            # Map label to option (A: "Go", B: "Slow down", etc.)
             options_map = {label: text for label, text in zip(option_labels, parsed_options)}
 
             # Reverse map to find labels from answers
@@ -465,7 +491,7 @@ def practice_quiz(test_id):
 
     # Add parsed options to each question
     for q in questions:
-        q.parsed_options = q.options.split(",")
+        q.parsed_options = [opt.strip() for opt in q.options.split(",")]
 
     session.close()
     return render_template('practice_quiz.html', test=test, questions=questions)
@@ -478,7 +504,8 @@ def approve_licenses():
         return redirect(url_for('dashboard'))
 
     session = SessionLocal()
-    # Get students who passed but aren't licensed
+
+    # Get students who passed the real test but aren't approved
     passed_students = session.query(User).join(RealTestAttempt).filter(
         User.role == 'student',
         RealTestAttempt.passed == True,
@@ -499,26 +526,34 @@ def approve_licenses():
     session.close()
     return render_template('approve_licenses.html', students=passed_students)
 
+
 @app.route('/license')
 @login_required
 def license_page():
     session = SessionLocal()
 
-    # If user has a license, show status and reports
-    if current_user.has_license:
-        incident_reports = session.query(IncidentReport).filter_by(user_id=current_user.id).all()
+    # Teacher: redirect to license approvals
+    if current_user.role == 'teacher':
         session.close()
-        return render_template('license_status.html', licensed=True, reports=incident_reports)
+        return redirect(url_for('approve_licenses'))
 
-    # Check if user has passed the test
+    # Student: check license status
+    has_license = current_user.has_license
     passed_test = session.query(RealTestAttempt).filter_by(user_id=current_user.id, passed=True).first()
+    incident_reports = []
+
+    if has_license:
+        incident_reports = session.query(IncidentReport).filter_by(user_id=current_user.id).all()
+
     session.close()
+    return render_template(
+        'license_status.html',
+        licensed=has_license,
+        awaiting_approval=bool(passed_test and not has_license),
+        show_real_test_button=not passed_test,
+        reports=incident_reports
+    )
 
-    if passed_test:
-        return render_template('license_status.html', awaiting_approval=True)
-
-    # If not passed, show default info page with option to take test
-    return render_template('license_status.html', show_real_test_button=True)
 
 
 
