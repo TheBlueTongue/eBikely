@@ -1,6 +1,7 @@
 from flask import Flask, render_template, redirect, url_for, flash, request, session as flask_session
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import joinedload
 from werkzeug.security import generate_password_hash, check_password_hash
 from database_setup import (SessionLocal, User, EBike, PracticeTest, RealTest, ParkingSpot, 
                            PracticeAttempt, PracticeQuestion, RealTestAttempt, ParkingReservation, 
@@ -292,8 +293,9 @@ def parking_spots():
     # Get all spots
     all_spots = session.query(ParkingSpot).all()
 
-    # Get reservations for the selected date
+    # Get reservations for the selected date with eager loading of user data
     reservations = session.query(ParkingReservation)\
+        .options(joinedload(ParkingReservation.user))\
         .filter(ParkingReservation.reservation_date == selected_date)\
         .all()
 

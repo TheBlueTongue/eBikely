@@ -88,8 +88,10 @@
     <div class="parking-map-container">
       <div class="spot-grid-map">
         {% for row in layout_grid %}
+          {% set row_loop = loop %}
           <div class="grid-row">
             {% for cell in row %}
+              {% set col_loop = loop %}
               {% set spot_info = spots_by_number.get(cell) %}
               {% if cell and spot_info %}
                 {% set spot = spot_info.spot %}
@@ -113,8 +115,16 @@
                 </div>
               {% else %}
                 {% if cell.lower() == "building" %}
-                  <div class="map-element building">
-                    <i class="fas fa-building"></i>
+                  {% set show_icon = false %}
+                  {% set prev_cell = row[col_loop.index0-1] if col_loop.index0 > 0 else "" %}
+                  {% set above_cell = layout_grid[row_loop.index0-1][col_loop.index0] if row_loop.index0 > 0 else "" %}
+                  {% if prev_cell.lower() != "building" and above_cell.lower() != "building" %}
+                    {% set show_icon = true %}
+                  {% endif %}
+                  <div class="map-element building {% if show_icon %}building-with-icon{% endif %}">
+                    {% if show_icon %}
+                      <i class="fas fa-building building-icon"></i>
+                    {% endif %}
                   </div>
                 {% elif cell.lower() == "fence" %}
                   <div class="map-element fence"></div>
@@ -235,11 +245,11 @@
 }
 
 .legend-color.available {
-    background-color: #28a745;
+    background-color: #4CAF50;
 }
 
 .legend-color.reserved {
-    background-color: #dc3545;
+    background-color: #F44336;
 }
 
 .legend-color.building {
@@ -247,7 +257,7 @@
 }
 
 .legend-color.path {
-    background-color: #6c757d;
+    background-color: #868e96;
 }
 
 /* Stats */
@@ -282,27 +292,44 @@
     border-radius: 1rem;
     padding: 2rem;
     border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow-x: auto;
+    width: 100%;
 }
 
 .spot-grid-map {
     display: grid;
     grid-template-rows: repeat(26, 35px);
-    justify-content: center;
-    gap: 2px;
-    max-width: 100%;
-    overflow-x: auto;
+    justify-content: start;
+    gap: 0;
+    width: fit-content;
+    min-width: 100%;
+    margin: 0 auto;
+    overflow-x: visible;
+    padding: 0;
 }
 
 .grid-row {
     display: grid;
     grid-template-columns: repeat(34, 35px);
-    gap: 2px;
+    gap: 0;
 }
 
 /* Parking Spots */
+.spot-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 1px; /* Creates gaps only around parking spots */
+}
+
+.spot-wrapper form {
+    margin: 0;
+    display: flex;
+}
+
 .parking-spot {
-    width: 35px;
-    height: 35px;
+    width: 33px; /* Reduced by 2px to account for margin */
+    height: 33px; /* Reduced by 2px to account for margin */
     border-radius: 8px;
     border: 2px solid transparent;
     cursor: pointer;
@@ -316,27 +343,31 @@
 }
 
 .parking-spot.available {
-    background: linear-gradient(135deg, #28a745, #20c997);
+    background: linear-gradient(135deg, #4CAF50, #66BB6A);
     color: white;
-    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+    box-shadow: 0 3px 12px rgba(76, 175, 80, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 .parking-spot.available:hover {
     transform: scale(1.1);
-    box-shadow: 0 4px 16px rgba(40, 167, 69, 0.5);
-    border-color: rgba(255, 255, 255, 0.6);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
+    border-color: rgba(255, 255, 255, 0.8);
+    background: linear-gradient(135deg, #66BB6A, #4CAF50);
 }
 
 .parking-spot.reserved {
-    background: linear-gradient(135deg, #dc3545, #e74c3c);
+    background: linear-gradient(135deg, #F44336, #EF5350);
     color: white;
-    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+    box-shadow: 0 3px 12px rgba(244, 67, 54, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 .parking-spot.reserved:hover:not([disabled]) {
     transform: scale(1.1);
-    box-shadow: 0 4px 16px rgba(220, 53, 69, 0.5);
-    border-color: rgba(255, 255, 255, 0.6);
+    box-shadow: 0 6px 20px rgba(244, 67, 54, 0.6);
+    border-color: rgba(255, 255, 255, 0.8);
+    background: linear-gradient(135deg, #EF5350, #F44336);
 }
 
 .parking-spot.reserved[disabled] {
@@ -349,7 +380,7 @@
 .map-element {
     width: 35px;
     height: 35px;
-    border-radius: 4px;
+    border-radius: 0; /* Removed border-radius for seamless contiguous blocks */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -358,18 +389,35 @@
 }
 
 .map-element.building {
-    background: linear-gradient(135deg, #495057, #343a40);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: #495057;
+    border: none;
+    position: relative;
+}
+
+.building-with-icon {
+    z-index: 10;
+}
+
+.building-icon {
+    font-size: 2.5rem;
+    color: rgba(255, 255, 255, 0.9);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    z-index: 15;
+    pointer-events: none;
 }
 
 .map-element.fence {
-    background: linear-gradient(135deg, #6c757d, #495057);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #6c757d;
+    border: none;
 }
 
 .map-element.path {
-    background: rgba(108, 117, 125, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: #868e96;
+    border: none;
 }
 
 .map-element.empty {
@@ -380,6 +428,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    margin: 1px; /* Creates gaps only around parking spots */
 }
 
 .spot-wrapper form {
@@ -396,16 +445,28 @@
     
     .spot-grid-map {
         grid-template-rows: repeat(26, 30px);
+        padding: 0;
+        justify-content: start;
     }
     
     .grid-row {
         grid-template-columns: repeat(34, 30px);
     }
     
-    .parking-spot, .map-element {
+    .parking-spot {
+        width: 28px; /* Reduced by 2px to account for margin */
+        height: 28px; /* Reduced by 2px to account for margin */
+        font-size: 0.7rem;
+    }
+    
+    .map-element {
         width: 30px;
         height: 30px;
         font-size: 0.7rem;
+    }
+    
+    .building-icon {
+        font-size: 2rem;
     }
     
     .parking-map-container {

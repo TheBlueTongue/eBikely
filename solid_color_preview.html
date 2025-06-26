@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solid Color Infrastructure Preview</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: #1a1a1a;
+            color: white;
+            font-family: Arial, sans-serif;
+            padding: 2rem;
+        }
+        
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-bottom: 2rem;
+        }
+        
+        .section {
+            text-align: center;
+        }
+        
+        .parking-map-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 1rem;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: fit-content;
+            margin: 1rem auto;
+        }
+
+        .spot-grid-map {
+            display: grid;
+            grid-template-rows: repeat(5, 35px);
+            justify-content: center;
+            gap: 0;
+        }
+
+        .grid-row {
+            display: grid;
+            grid-template-columns: repeat(8, 35px);
+            gap: 0;
+        }
+
+        /* Map Elements - OLD VERSION (with gradients) */
+        .map-element-old {
+            width: 35px;
+            height: 35px;
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Map Elements - NEW VERSION (solid colors) */
+        .map-element-new {
+            width: 35px;
+            height: 35px;
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .map-element-old.building {
+            background: linear-gradient(135deg, #495057, #343a40);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .map-element-old.fence {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .map-element-old.path {
+            background: rgba(108, 117, 125, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .map-element-new.building {
+            background: #495057;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .map-element-new.fence {
+            background: #6c757d;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .map-element-new.path {
+            background: #868e96;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Parking Spots for reference */
+        .spot-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 1px;
+        }
+
+        .parking-spot {
+            width: 33px;
+            height: 33px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .parking-spot.available {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+        }
+
+        .parking-spot.reserved {
+            background: linear-gradient(135deg, #dc3545, #e74c3c);
+            color: white;
+            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+        }
+
+        h2 {
+            color: #ff6b6b;
+            margin-bottom: 1rem;
+        }
+
+        h3 {
+            color: #51cf66;
+            margin-bottom: 1rem;
+        }
+
+        .highlight {
+            background: rgba(255, 107, 107, 0.1);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            margin-top: 1rem;
+        }
+
+        .success {
+            background: rgba(81, 207, 102, 0.1);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(81, 207, 102, 0.3);
+            margin-top: 1rem;
+        }
+
+        .legend {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 0.8rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center; margin-bottom: 3rem;">Solid Color Infrastructure Preview</h1>
+    
+    <div class="comparison">
+        <div class="section">
+            <h2>❌ BEFORE (with gradients)</h2>
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #495057, #343a40);"></div>
+                    <span>Building</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #6c757d, #495057);"></div>
+                    <span>Fence</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: rgba(108, 117, 125, 0.3);"></div>
+                    <span>Path</span>
+                </div>
+            </div>
+            <div class="parking-map-container">
+                <div class="spot-grid-map">
+                    <div class="grid-row">
+                        <div class="map-element-old building"><i class="fas fa-building"></i></div>
+                        <div class="map-element-old building"><i class="fas fa-building"></i></div>
+                        <div class="map-element-old building"><i class="fas fa-building"></i></div>
+                        <div class="map-element-old building"><i class="fas fa-building"></i></div>
+                        <div class="map-element-old path"></div>
+                        <div class="map-element-old path"></div>
+                        <div class="map-element-old path"></div>
+                        <div class="map-element-old path"></div>
+                    </div>
+                    <div class="grid-row">
+                        <div class="map-element-old building"><i class="fas fa-building"></i></div>
+                        <div class="map-element-old building"><i class="fas fa-building"></i></div>
+                        <div class="map-element-old building"><i class="fas fa-building"></i></div>
+                        <div class="map-element-old building"><i class="fas fa-building"></i></div>
+                        <div class="map-element-old path"></div>
+                        <div class="spot-wrapper"><div class="parking-spot available"><i class="fas fa-plus"></i></div></div>
+                        <div class="spot-wrapper"><div class="parking-spot reserved"><i class="fas fa-times"></i></div></div>
+                        <div class="map-element-old path"></div>
+                    </div>
+                    <div class="grid-row">
+                        <div class="map-element-old fence"></div>
+                        <div class="map-element-old fence"></div>
+                        <div class="map-element-old fence"></div>
+                        <div class="map-element-old fence"></div>
+                        <div class="map-element-old fence"></div>
+                        <div class="map-element-old fence"></div>
+                        <div class="map-element-old fence"></div>
+                        <div class="map-element-old fence"></div>
+                    </div>
+                    <div class="grid-row">
+                        <div class="map-element-old fence"></div>
+                        <div class="map-element-old fence"></div>
+                        <div class="map-element-old fence"></div>
+                        <div class="spot-wrapper"><div class="parking-spot available"><i class="fas fa-plus"></i></div></div>
+                        <div class="spot-wrapper"><div class="parking-spot available"><i class="fas fa-plus"></i></div></div>
+                        <div class="map-element-old fence"></div>
+                        <div class="map-element-old fence"></div>
+                        <div class="map-element-old fence"></div>
+                    </div>
+                    <div class="grid-row">
+                        <div class="map-element-old path"></div>
+                        <div class="map-element-old path"></div>
+                        <div class="map-element-old path"></div>
+                        <div class="map-element-old path"></div>
+                        <div class="map-element-old path"></div>
+                        <div class="map-element-old path"></div>
+                        <div class="map-element-old path"></div>
+                        <div class="map-element-old path"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="highlight">
+                <strong>Issue:</strong> Gradients create visual texture variations within blocks, making them appear less unified
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>✅ AFTER (solid colors)</h3>
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #495057;"></div>
+                    <span>Building</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #6c757d;"></div>
+                    <span>Fence</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #868e96;"></div>
+                    <span>Path</span>
+                </div>
+            </div>
+            <div class="parking-map-container">
+                <div class="spot-grid-map">
+                    <div class="grid-row">
+                        <div class="map-element-new building"><i class="fas fa-building"></i></div>
+                        <div class="map-element-new building"><i class="fas fa-building"></i></div>
+                        <div class="map-element-new building"><i class="fas fa-building"></i></div>
+                        <div class="map-element-new building"><i class="fas fa-building"></i></div>
+                        <div class="map-element-new path"></div>
+                        <div class="map-element-new path"></div>
+                        <div class="map-element-new path"></div>
+                        <div class="map-element-new path"></div>
+                    </div>
+                    <div class="grid-row">
+                        <div class="map-element-new building"><i class="fas fa-building"></i></div>
+                        <div class="map-element-new building"><i class="fas fa-building"></i></div>
+                        <div class="map-element-new building"><i class="fas fa-building"></i></div>
+                        <div class="map-element-new building"><i class="fas fa-building"></i></div>
+                        <div class="map-element-new path"></div>
+                        <div class="spot-wrapper"><div class="parking-spot available"><i class="fas fa-plus"></i></div></div>
+                        <div class="spot-wrapper"><div class="parking-spot reserved"><i class="fas fa-times"></i></div></div>
+                        <div class="map-element-new path"></div>
+                    </div>
+                    <div class="grid-row">
+                        <div class="map-element-new fence"></div>
+                        <div class="map-element-new fence"></div>
+                        <div class="map-element-new fence"></div>
+                        <div class="map-element-new fence"></div>
+                        <div class="map-element-new fence"></div>
+                        <div class="map-element-new fence"></div>
+                        <div class="map-element-new fence"></div>
+                        <div class="map-element-new fence"></div>
+                    </div>
+                    <div class="grid-row">
+                        <div class="map-element-new fence"></div>
+                        <div class="map-element-new fence"></div>
+                        <div class="map-element-new fence"></div>
+                        <div class="spot-wrapper"><div class="parking-spot available"><i class="fas fa-plus"></i></div></div>
+                        <div class="spot-wrapper"><div class="parking-spot available"><i class="fas fa-plus"></i></div></div>
+                        <div class="map-element-new fence"></div>
+                        <div class="map-element-new fence"></div>
+                        <div class="map-element-new fence"></div>
+                    </div>
+                    <div class="grid-row">
+                        <div class="map-element-new path"></div>
+                        <div class="map-element-new path"></div>
+                        <div class="map-element-new path"></div>
+                        <div class="map-element-new path"></div>
+                        <div class="map-element-new path"></div>
+                        <div class="map-element-new path"></div>
+                        <div class="map-element-new path"></div>
+                        <div class="map-element-new path"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="success">
+                <strong>Solution:</strong> Uniform solid colors create perfectly seamless, cohesive infrastructure blocks
+            </div>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 3rem; padding: 2rem; background: rgba(81, 207, 102, 0.1); border-radius: 1rem; border: 1px solid rgba(81, 207, 102, 0.3);">
+        <h3 style="color: #51cf66; font-size: 1.5rem; margin-bottom: 1rem;">🎨 Solid Color Infrastructure Complete!</h3>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1rem 0;">
+            <div>
+                <div style="width: 40px; height: 40px; background: #495057; margin: 0 auto 0.5rem; border-radius: 4px;"></div>
+                <strong>Buildings:</strong> #495057
+            </div>
+            <div>
+                <div style="width: 40px; height: 40px; background: #6c757d; margin: 0 auto 0.5rem; border-radius: 4px;"></div>
+                <strong>Fences:</strong> #6c757d
+            </div>
+            <div>
+                <div style="width: 40px; height: 40px; background: #868e96; margin: 0 auto 0.5rem; border-radius: 4px;"></div>
+                <strong>Paths:</strong> #868e96
+            </div>
+        </div>
+        <p style="font-size: 1rem; opacity: 0.9; margin-top: 1rem;">Infrastructure now appears as solid, contiguous blocks while parking spots maintain their attractive gradients and interactivity</p>
+    </div>
+</body>
+</html>
