@@ -1,0 +1,617 @@
+{% extends "base.html" %}
+{% block title %}Admin Profile{% endblock %}
+
+{% block content %}
+<div class="container welcome-container">
+  <!-- Hero Section -->
+  <div class="hero-section card text-white p-5 mb-5 fade-in">
+    <div class="text-center">
+      <i class="fas fa-user-shield dashboard-icon mb-3"></i>
+      <h1 class="display-4 mb-3">Admin Dashboard</h1>
+      <p class="lead mb-0">Manage your administrator account and oversee system operations</p>
+    </div>
+  </div>
+
+  <div class="row g-4 slide-up-delay">
+    <!-- Account Information -->
+    <div class="col-lg-4 col-md-6">
+      <div class="card feature-card p-4">
+        <div class="card-header gradient-blue mb-3">
+          <i class="fas fa-user-tie me-2"></i>
+          <h4 class="mb-0">Administrator Details</h4>
+        </div>
+        <div class="user-info">
+          <div class="info-item">
+            <div class="info-icon">
+              <i class="fas fa-id-badge"></i>
+            </div>
+            <div class="info-content">
+              <span class="info-label">Username</span>
+              <span class="info-value">{{ current_user.username }}</span>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-icon">
+              <i class="fas fa-envelope"></i>
+            </div>
+            <div class="info-content">
+              <span class="info-label">Email</span>
+              <span class="info-value">{{ current_user.email }}</span>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-icon">
+              <i class="fas fa-shield-alt"></i>
+            </div>
+            <div class="info-content">
+              <span class="info-label">Role</span>
+              <span class="info-value">Administrator</span>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-icon">
+              <i class="fas fa-building"></i>
+            </div>
+            <div class="info-content">
+              <span class="info-label">Department</span>
+              <span class="info-value">{{ current_user.department or 'Not Specified' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- System Overview -->
+    <div class="col-lg-4 col-md-6">
+      <div class="card feature-card p-4">
+        <div class="card-header gradient-green mb-3">
+          <i class="fas fa-chart-line me-2"></i>
+          <h4 class="mb-0">System Overview</h4>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-icon">
+              <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-info">
+              <span class="stat-number">{{ system_stats.total_students }}</span>
+              <span class="stat-label">Total Students</span>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon">
+              <i class="fas fa-bicycle"></i>
+            </div>
+            <div class="stat-info">
+              <span class="stat-number">{{ system_stats.total_ebikes }}</span>
+              <span class="stat-label">Registered E-bikes</span>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon">
+              <i class="fas fa-clipboard-check"></i>
+            </div>
+            <div class="stat-info">
+              <span class="stat-number">{{ system_stats.total_practice_attempts }}</span>
+              <span class="stat-label">Practice Attempts</span>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon">
+              <i class="fas fa-certificate"></i>
+            </div>
+            <div class="stat-info">
+              <span class="stat-number">{{ system_stats.total_real_attempts }}</span>
+              <span class="stat-label">Real Test Attempts</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- License Management -->
+    <div class="col-lg-4 col-md-12">
+      <div class="card feature-card p-4">
+        <div class="card-header gradient-purple mb-3">
+          <i class="fas fa-id-card me-2"></i>
+          <h4 class="mb-0">License Management</h4>
+        </div>
+        <div class="license-management">
+          <div class="management-stat">
+            <div class="management-icon">
+              <i class="fas fa-clock text-warning"></i>
+            </div>
+            <div class="management-info">
+              <span class="management-number">{{ system_stats.pending_licenses }}</span>
+              <span class="management-label">Pending Approvals</span>
+            </div>
+          </div>
+          <div class="management-stat">
+            <div class="management-icon">
+              <i class="fas fa-check-circle text-success"></i>
+            </div>
+            <div class="management-info">
+              <span class="management-number">{{ system_stats.approved_licenses }}</span>
+              <span class="management-label">Approved Licenses</span>
+            </div>
+          </div>
+          {% if system_stats.pending_licenses > 0 %}
+            <div class="mt-3">
+              <a href="{{ url_for('approve_licenses') }}" class="btn btn-outline-light btn-sm">
+                <i class="fas fa-user-check me-2"></i>Review Applications
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent System Activity -->
+  <div class="row mt-4 slide-up-delay">
+    <div class="col-12">
+      <div class="card feature-card p-4">
+        <div class="card-header gradient-orange mb-3">
+          <i class="fas fa-activity me-2"></i>
+          <h4 class="mb-0">Recent System Activity</h4>
+        </div>
+        
+        {% if recent_activities %}
+          <div class="activity-timeline">
+            {% for activity in recent_activities %}
+              <div class="activity-item">
+                <div class="activity-icon">
+                  {% if activity.type == 'practice' %}
+                    <i class="fas fa-clipboard-list text-info"></i>
+                  {% elif activity.type == 'real_test' %}
+                    <i class="fas fa-certificate text-warning"></i>
+                  {% elif activity.type == 'registration' %}
+                    <i class="fas fa-user-plus text-success"></i>
+                  {% elif activity.type == 'ebike' %}
+                    <i class="fas fa-bicycle text-primary"></i>
+                  {% endif %}
+                </div>
+                <div class="activity-content">
+                  <div class="activity-title">
+                    {{ activity.title }}
+                  </div>
+                  <div class="activity-details">
+                    {{ activity.details }}
+                  </div>
+                  <div class="activity-time">
+                    {{ activity.timestamp.strftime('%B %d, %Y at %I:%M %p') }}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty-state text-center py-4">
+            <i class="fas fa-activity fa-3x opacity-50 mb-3"></i>
+            <h5>No Recent Activity</h5>
+            <p class="opacity-75">System activities will appear here as they occur.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Quick Actions -->
+  <div class="row mt-4 slide-up-delay">
+    <div class="col-12">
+      <div class="card feature-card p-4">
+        <div class="card-header gradient-teal mb-3">
+          <i class="fas fa-tools me-2"></i>
+          <h4 class="mb-0">Administrative Tools</h4>
+        </div>
+        <div class="admin-actions">
+          <a href="{{ url_for('admin_practice_quizzes') }}" class="action-btn">
+            <i class="fas fa-clipboard-list"></i>
+            <span>Practice Quiz Management</span>
+          </a>
+          <a href="{{ url_for('approve_licenses') }}" class="action-btn">
+            <i class="fas fa-user-check"></i>
+            <span>License Approvals</span>
+          </a>
+          <a href="{{ url_for('admin_ebike_overview') }}" class="action-btn">
+            <i class="fas fa-bicycle"></i>
+            <span>E-bike Overview</span>
+          </a>
+          <a href="{{ url_for('parking_spots') }}" class="action-btn">
+            <i class="fas fa-parking"></i>
+            <span>Parking Management</span>
+          </a>
+          <a href="{{ url_for('dashboard') }}" class="action-btn">
+            <i class="fas fa-tachometer-alt"></i>
+            <span>Main Dashboard</span>
+          </a>
+          <a href="{{ url_for('practice_selection') }}" class="action-btn">
+            <i class="fas fa-chart-bar"></i>
+            <span>View Practice Tests</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Layout */
+.welcome-container {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+}
+
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    border-radius: 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.dashboard-icon {
+    font-size: 3rem;
+    color: #00c6ff;
+}
+
+/* Feature Cards */
+.feature-card {
+    background: linear-gradient(to right, #3f51b5cc, #2196f3cc);
+    border-radius: 1rem;
+    backdrop-filter: blur(6px);
+    border: none;
+    color: white;
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Card Headers */
+.card-header {
+    background: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.gradient-blue {
+    color: #00c6ff;
+}
+
+.gradient-green {
+    color: #00ff7f;
+}
+
+.gradient-purple {
+    color: #9c88ff;
+}
+
+.gradient-orange {
+    color: #ff9800;
+}
+
+.gradient-teal {
+    color: #26c6da;
+}
+
+/* User Info */
+.user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.8);
+    flex-shrink: 0;
+}
+
+.info-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.info-label {
+    font-size: 0.8rem;
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-value {
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* Statistics */
+.stats-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-item:last-child {
+    border-bottom: none;
+}
+
+.stat-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(0, 198, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #00c6ff;
+    flex-shrink: 0;
+}
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.stat-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #00c6ff;
+    margin: 0;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin: 0;
+}
+
+/* License Management */
+.license-management {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.management-stat {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.management-stat:last-child {
+    border-bottom: none;
+}
+
+.management-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.management-info {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.management-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #00c6ff;
+    margin: 0;
+}
+
+.management-label {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin: 0;
+}
+
+/* Activity Timeline */
+.activity-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.activity-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    transition: background 0.3s ease;
+}
+
+.activity-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 0.25rem;
+}
+
+.activity-content {
+    flex-grow: 1;
+}
+
+.activity-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.activity-details {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    margin-bottom: 0.25rem;
+}
+
+.activity-time {
+    font-size: 0.8rem;
+    opacity: 0.7;
+}
+
+/* Admin Actions */
+.admin-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1.5rem 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: white;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    color: white;
+    text-decoration: none;
+}
+
+.action-btn i {
+    font-size: 1.5rem;
+    color: #00c6ff;
+}
+
+.action-btn span {
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: center;
+}
+
+/* Empty State */
+.empty-state {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Buttons */
+.btn-outline-light {
+    border-color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.9);
+    transition: all 0.3s ease;
+}
+
+.btn-outline-light:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.8);
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* Text Colors */
+.text-success {
+    color: #00ff7f !important;
+}
+
+.text-warning {
+    color: #ffc107 !important;
+}
+
+.text-info {
+    color: #17a2b8 !important;
+}
+
+.text-primary {
+    color: #00c6ff !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .welcome-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+    
+    .admin-actions {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .action-btn {
+        padding: 1rem 0.5rem;
+    }
+    
+    .stats-grid {
+        gap: 0.75rem;
+    }
+}
+
+/* Animations */
+.fade-in {
+    animation: fadeIn 1s ease-in;
+}
+
+.slide-up-delay {
+    animation: slideUp 0.8s ease-out 0.3s backwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}

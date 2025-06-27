@@ -68,8 +68,8 @@
           <h3 class="stat-number mb-2">{{ total_practice_attempts }}</h3>
           <h5 class="stat-label mb-3">Practice Attempts</h5>
           <p class="stat-description mb-3">Total quiz attempts by students</p>
-          <a href="{{ url_for('practice_selection') }}" class="btn btn-outline-light btn-sm">
-            <i class="fas fa-chart-bar me-2"></i>View Details
+          <a href="{{ url_for('admin_practice_quizzes') }}" class="btn btn-outline-light btn-sm">
+            <i class="fas fa-chart-bar me-2"></i>Manage Quizzes
           </a>
         </div>
       </div>
@@ -115,6 +115,17 @@
               <div class="action-content">
                 <h5>Parking Management</h5>
                 <p>View and manage parking spot reservations</p>
+              </div>
+            </a>
+          </div>
+          <div class="col-lg-4 col-md-6">
+            <a href="{{ url_for('admin_practice_quizzes') }}" class="quick-action-card">
+              <div class="action-icon">
+                <i class="fas fa-clipboard-list"></i>
+              </div>
+              <div class="action-content">
+                <h5>Practice Quiz Management</h5>
+                <p>Monitor student quiz performance and statistics</p>
               </div>
             </a>
           </div>

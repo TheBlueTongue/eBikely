@@ -1,0 +1,561 @@
+{% extends "base.html" %}
+{% block title %}Practice Quiz Management{% endblock %}
+
+{% block content %}
+<div class="container welcome-container">
+  <!-- Hero Section -->
+  <div class="hero-section card text-white p-5 mb-5 fade-in">
+    <div class="text-center">
+      <i class="fas fa-clipboard-list dashboard-icon mb-3"></i>
+      <h1 class="display-4 mb-3">Practice Quiz Management</h1>
+      <p class="lead mb-0">Monitor and analyze student practice quiz performance</p>
+    </div>
+  </div>
+
+  <!-- Statistics Overview -->
+  <div class="row slide-up-delay g-4 mb-5">
+    <div class="col-md-3">
+      <div class="card feature-card p-4 text-center">
+        <div class="stat-icon mb-3">
+          <i class="fas fa-clipboard-list fa-3x text-primary"></i>
+        </div>
+        <h3 class="stat-number">{{ test_stats|length }}</h3>
+        <h5 class="stat-label">Total Quizzes</h5>
+        <p class="stat-description">Available practice tests</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card feature-card p-4 text-center">
+        <div class="stat-icon mb-3">
+          <i class="fas fa-users fa-3x text-success"></i>
+        </div>
+        <h3 class="stat-number">
+          {% set total_attempts = test_stats|sum(attribute='total_attempts') %}
+          {{ total_attempts }}
+        </h3>
+        <h5 class="stat-label">Total Attempts</h5>
+        <p class="stat-description">Across all quizzes</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card feature-card p-4 text-center">
+        <div class="stat-icon mb-3">
+          <i class="fas fa-trophy fa-3x text-warning"></i>
+        </div>
+        <h3 class="stat-number">
+          {% set total_successful = test_stats|sum(attribute='successful_attempts') %}
+          {% if total_attempts > 0 %}
+            {{ "%.1f"|format((total_successful / total_attempts) * 100) }}%
+          {% else %}
+            0%
+          {% endif %}
+        </h3>
+        <h5 class="stat-label">Success Rate</h5>
+        <p class="stat-description">Overall passing rate</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card feature-card p-4 text-center">
+        <div class="stat-icon mb-3">
+          <i class="fas fa-chart-line fa-3x text-info"></i>
+        </div>
+        <h3 class="stat-number">
+          {% set all_averages = test_stats|selectattr('total_attempts', 'greaterthan', 0)|map(attribute='average_score')|list %}
+          {% if all_averages %}
+            {{ "%.1f"|format(all_averages|sum / all_averages|length) }}
+          {% else %}
+            0
+          {% endif %}
+        </h3>
+        <h5 class="stat-label">Avg Score</h5>
+        <p class="stat-description">Points out of 20</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz Details -->
+  <div class="row slide-up-delay">
+    <div class="col-12">
+      <div class="card feature-card p-4">
+        <div class="card-header gradient-blue mb-4">
+          <i class="fas fa-chart-bar me-2"></i>
+          <h4 class="mb-0">Quiz Performance Analysis</h4>
+        </div>
+
+        {% if test_stats %}
+          <div class="quiz-grid">
+            {% for stat in test_stats %}
+              <div class="quiz-card">
+                <div class="quiz-header">
+                  <div class="quiz-info">
+                    <h5 class="quiz-name">{{ stat.test.name }}</h5>
+                    <p class="quiz-meta">{{ stat.question_count }} questions • Created by system</p>
+                  </div>
+                  <div class="quiz-status">
+                    {% if stat.success_rate >= 70 %}
+                      <span class="status-badge status-good">
+                        <i class="fas fa-check-circle"></i> Good Performance
+                      </span>
+                    {% elif stat.success_rate >= 50 %}
+                      <span class="status-badge status-fair">
+                        <i class="fas fa-exclamation-triangle"></i> Fair Performance
+                      </span>
+                    {% else %}
+                      <span class="status-badge status-poor">
+                        <i class="fas fa-times-circle"></i> Needs Attention
+                      </span>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <div class="quiz-stats">
+                  <div class="stat-row">
+                    <div class="stat-item">
+                      <div class="stat-icon">
+                        <i class="fas fa-play"></i>
+                      </div>
+                      <div class="stat-content">
+                        <span class="stat-label">Total Attempts</span>
+                        <span class="stat-value">{{ stat.total_attempts }}</span>
+                      </div>
+                    </div>
+                    
+                    <div class="stat-item">
+                      <div class="stat-icon">
+                        <i class="fas fa-trophy"></i>
+                      </div>
+                      <div class="stat-content">
+                        <span class="stat-label">Success Rate</span>
+                        <span class="stat-value">{{ "%.1f"|format(stat.success_rate) }}%</span>
+                      </div>
+                    </div>
+                    
+                    <div class="stat-item">
+                      <div class="stat-icon">
+                        <i class="fas fa-chart-line"></i>
+                      </div>
+                      <div class="stat-content">
+                        <span class="stat-label">Average Score</span>
+                        <span class="stat-value">{{ stat.average_score }}/20</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {% if stat.recent_attempts %}
+                  <div class="recent-attempts">
+                    <h6 class="attempts-title">
+                      <i class="fas fa-clock me-2"></i>Recent Attempts
+                    </h6>
+                    <div class="attempts-list">
+                      {% for attempt in stat.recent_attempts %}
+                        <div class="attempt-item">
+                          <div class="attempt-user">
+                            <div class="user-avatar">
+                              <i class="fas fa-user"></i>
+                            </div>
+                            <div class="user-info">
+                              <span class="user-name">{{ attempt.user.username }}</span>
+                              <span class="attempt-time">{{ attempt.attempt_date.strftime('%b %d, %Y') }}</span>
+                            </div>
+                          </div>
+                          <div class="attempt-score">
+                            {% if attempt.score >= 16 %}
+                              <span class="score-badge score-pass">{{ attempt.score }}/20</span>
+                            {% else %}
+                              <span class="score-badge score-fail">{{ attempt.score }}/20</span>
+                            {% endif %}
+                          </div>
+                        </div>
+                      {% endfor %}
+                    </div>
+                  </div>
+                {% else %}
+                  <div class="no-attempts">
+                    <i class="fas fa-info-circle me-2"></i>No attempts yet
+                  </div>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty-state text-center py-5">
+            <div class="empty-icon mb-4">
+              <i class="fas fa-clipboard-list fa-4x opacity-50"></i>
+            </div>
+            <h4 class="mb-3">No Practice Quizzes</h4>
+            <p class="opacity-75 mb-4">No practice quizzes have been created yet.</p>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-light">
+              <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Layout */
+.welcome-container {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+}
+
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    border-radius: 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.dashboard-icon {
+    font-size: 3rem;
+    color: #00c6ff;
+}
+
+/* Feature Cards */
+.feature-card {
+    background: linear-gradient(to right, #3f51b5cc, #2196f3cc);
+    border-radius: 1rem;
+    backdrop-filter: blur(6px);
+    border: none;
+    color: white;
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Card Headers */
+.card-header {
+    background: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.gradient-blue {
+    color: #00c6ff;
+}
+
+/* Statistics */
+.stat-icon {
+    margin-bottom: 1rem;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #00c6ff;
+}
+
+.stat-label {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    opacity: 0.9;
+}
+
+.stat-description {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+/* Quiz Grid */
+.quiz-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1.5rem;
+}
+
+.quiz-card {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.quiz-card:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Quiz Header */
+.quiz-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.quiz-name {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0 0 0.25rem 0;
+    color: white;
+}
+
+.quiz-meta {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin: 0;
+}
+
+.status-badge {
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.status-good {
+    background: rgba(0, 255, 127, 0.2);
+    color: #00ff7f;
+    border: 1px solid rgba(0, 255, 127, 0.3);
+}
+
+.status-fair {
+    background: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+    border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.status-poor {
+    background: rgba(220, 53, 69, 0.2);
+    color: #dc3545;
+    border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+/* Quiz Stats */
+.quiz-stats {
+    margin-bottom: 1.5rem;
+}
+
+.stat-row {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-icon {
+    width: 35px;
+    height: 35px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.8);
+    flex-shrink: 0;
+}
+
+.stat-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0;
+}
+
+.stat-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #00c6ff;
+    margin: 0;
+}
+
+/* Recent Attempts */
+.recent-attempts {
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    padding-top: 1rem;
+}
+
+.attempts-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    opacity: 0.9;
+    display: flex;
+    align-items: center;
+}
+
+.attempts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.attempt-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+}
+
+.attempt-user {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.user-avatar {
+    width: 24px;
+    height: 24px;
+    background: rgba(0, 198, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #00c6ff;
+    font-size: 0.8rem;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name {
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.attempt-time {
+    font-size: 0.7rem;
+    opacity: 0.7;
+}
+
+.score-badge {
+    padding: 0.2rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.score-pass {
+    background: rgba(0, 255, 127, 0.2);
+    color: #00ff7f;
+}
+
+.score-fail {
+    background: rgba(220, 53, 69, 0.2);
+    color: #dc3545;
+}
+
+.no-attempts {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+    text-align: center;
+    padding: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    margin-top: 1rem;
+}
+
+/* Empty State */
+.empty-state {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.empty-icon {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.btn-outline-light {
+    border-color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.9);
+    transition: all 0.3s ease;
+}
+
+.btn-outline-light:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.8);
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* Status Colors */
+.text-success {
+    color: #00ff7f !important;
+}
+
+.text-primary {
+    color: #00c6ff !important;
+}
+
+.text-info {
+    color: #17a2b8 !important;
+}
+
+.text-warning {
+    color: #ffc107 !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .welcome-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+    
+    .quiz-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .quiz-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+    }
+}
+
+/* Animations */
+.fade-in {
+    animation: fadeIn 1s ease-in;
+}
+
+.slide-up-delay {
+    animation: slideUp 0.8s ease-out 0.3s backwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}

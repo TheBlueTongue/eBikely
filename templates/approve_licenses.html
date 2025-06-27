@@ -1,11 +1,379 @@
-<form method="POST">
-  {% for student in students %}
-    <div class="form-check">
-      <input class="form-check-input" type="checkbox" name="approve" value="{{ student.id }}" id="user{{ student.id }}">
-      <label class="form-check-label" for="user{{ student.id }}">
-        {{ student.username }} (Year {{ student.year }}, House {{ student.house }})
-      </label>
+{% extends "base.html" %}
+{% block title %}Approve Licenses{% endblock %}
+
+{% block content %}
+<div class="container welcome-container">
+  <!-- Hero Section -->
+  <div class="hero-section card text-white p-5 mb-5 fade-in">
+    <div class="text-center">
+      <i class="fas fa-user-check dashboard-icon mb-3"></i>
+      <h1 class="display-4 mb-3">License Approvals</h1>
+      <p class="lead mb-0">Review and approve student e-bike license applications</p>
     </div>
-  {% endfor %}
-  <button type="submit" class="btn btn-success mt-3">Approve Selected</button>
-</form>
+  </div>
+
+  <!-- Main Content -->
+  <div class="row justify-content-center slide-up-delay">
+    <div class="col-lg-8 col-md-10">
+      <div class="card feature-card p-4">
+        <div class="card-header gradient-green mb-4">
+          <i class="fas fa-clipboard-check me-2"></i>
+          <h4 class="mb-0">Pending License Approvals</h4>
+        </div>
+
+        {% if students %}
+          <form method="POST" id="approvalForm">
+            <div class="students-list">
+              {% for student in students %}
+                <div class="student-item">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="approve" value="{{ student.id }}" id="user{{ student.id }}">
+                    <label class="form-check-label" for="user{{ student.id }}">
+                      <div class="student-info">
+                        <div class="student-avatar">
+                          <i class="fas fa-user"></i>
+                        </div>
+                        <div class="student-details">
+                          <h5 class="student-name">{{ student.username }}</h5>
+                          <p class="student-meta">Year {{ student.year }} • {{ student.house }} House</p>
+                          <div class="student-status">
+                            <span class="status-badge status-pending">
+                              <i class="fas fa-clock me-1"></i>
+                              Awaiting Approval
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+
+            <div class="form-actions mt-4">
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="selection-controls">
+                  <button type="button" class="btn btn-outline-light btn-sm" onclick="selectAll()">
+                    <i class="fas fa-check-square me-1"></i>Select All
+                  </button>
+                  <button type="button" class="btn btn-outline-light btn-sm ms-2" onclick="clearAll()">
+                    <i class="fas fa-square me-1"></i>Clear All
+                  </button>
+                </div>
+                <div class="submit-controls">
+                  <button type="submit" class="btn btn-success btn-lg" id="approveBtn">
+                    <i class="fas fa-check me-2"></i>Approve Selected
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+        {% else %}
+          <div class="empty-state text-center py-5">
+            <div class="empty-icon mb-4">
+              <i class="fas fa-user-check fa-4x opacity-50"></i>
+            </div>
+            <h4 class="mb-3">No Pending Approvals</h4>
+            <p class="opacity-75 mb-4">All students who have passed their tests have been approved.</p>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-light">
+              <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Layout */
+.welcome-container {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+}
+
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    border-radius: 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.dashboard-icon {
+    font-size: 3rem;
+    color: #00c6ff;
+}
+
+/* Feature Cards */
+.feature-card {
+    background: linear-gradient(to right, #3f51b5cc, #2196f3cc);
+    border-radius: 1rem;
+    backdrop-filter: blur(6px);
+    border: none;
+    color: white;
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Card Headers */
+.card-header {
+    background: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.gradient-green {
+    color: #00ff7f;
+}
+
+/* Students List */
+.students-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.student-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.student-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.form-check {
+    margin: 0;
+}
+
+.form-check-input {
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-top: 0;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+}
+
+.form-check-input:checked {
+    background-color: #00ff7f;
+    border-color: #00ff7f;
+}
+
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(0, 255, 127, 0.25);
+}
+
+.form-check-label {
+    width: 100%;
+    cursor: pointer;
+    margin-left: 1rem;
+}
+
+/* Student Info */
+.student-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.student-avatar {
+    width: 50px;
+    height: 50px;
+    background: rgba(0, 198, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #00c6ff;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.student-details {
+    flex-grow: 1;
+}
+
+.student-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 0.25rem 0;
+    color: white;
+}
+
+.student-meta {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin: 0 0 0.5rem 0;
+}
+
+.student-status {
+    margin-top: 0.5rem;
+}
+
+.status-badge {
+    background: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Form Actions */
+.form-actions {
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    padding-top: 1.5rem;
+}
+
+.selection-controls .btn {
+    border-color: rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.8);
+    transition: all 0.3s ease;
+}
+
+.selection-controls .btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.6);
+    color: white;
+    transform: translateY(-1px);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #00ff7f 0%, #00d66a 100%);
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 255, 127, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #00d66a 0%, #00c45a 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 255, 127, 0.4);
+}
+
+/* Empty State */
+.empty-state {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.empty-icon {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.btn-outline-light {
+    border-color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.9);
+    transition: all 0.3s ease;
+}
+
+.btn-outline-light:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.8);
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .welcome-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .form-actions .d-flex {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .selection-controls {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .student-info {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.75rem;
+    }
+    
+    .student-details {
+        text-align: center;
+    }
+}
+
+/* Animations */
+.fade-in {
+    animation: fadeIn 1s ease-in;
+}
+
+.slide-up-delay {
+    animation: slideUp 0.8s ease-out 0.3s backwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<script>
+function selectAll() {
+    const checkboxes = document.querySelectorAll('input[name="approve"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = true;
+    });
+}
+
+function clearAll() {
+    const checkboxes = document.querySelectorAll('input[name="approve"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+    });
+}
+
+// Show confirmation before submitting
+document.getElementById('approvalForm').addEventListener('submit', function(e) {
+    const checkedBoxes = document.querySelectorAll('input[name="approve"]:checked');
+    if (checkedBoxes.length === 0) {
+        e.preventDefault();
+        alert('Please select at least one student to approve.');
+        return;
+    }
+    
+    const count = checkedBoxes.length;
+    const message = count === 1 ? 
+        'Are you sure you want to approve 1 student license?' : 
+        `Are you sure you want to approve ${count} student licenses?`;
+    
+    if (!confirm(message)) {
+        e.preventDefault();
+    }
+});
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}

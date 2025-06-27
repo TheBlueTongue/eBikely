@@ -422,6 +422,10 @@ def real_test():
 def user_profile():
     session = SessionLocal()
     try:
+        # Redirect teachers to admin profile
+        if current_user.role == 'teacher':
+            return redirect(url_for('admin_user_profile'))
+        
         # Load user with all necessary relationships
         user = session.query(User).options(
             joinedload(User.ebikes),
@@ -438,9 +442,98 @@ def user_profile():
     finally:
         session.close()
 
+@app.route('/admin/profile')
+@login_required
+def admin_user_profile():
+    if current_user.role != 'teacher':
+        flash("Access denied.", "danger")
+        return redirect(url_for('dashboard'))
+
+    session = SessionLocal()
+    try:
+        # Get basic system statistics
+        system_stats = {
+            'total_students': session.query(User).filter_by(role='student').count(),
+            'total_ebikes': session.query(EBike).count(),
+            'total_practice_attempts': session.query(PracticeAttempt).count(),
+            'total_real_attempts': session.query(RealTestAttempt).count(),
+            'pending_licenses': session.query(User).filter(
+                User.role == 'student',
+                User.has_license == False
+            ).join(RealTestAttempt).filter(
+                RealTestAttempt.passed == True
+            ).distinct().count(),
+            'approved_licenses': session.query(User).filter(
+                User.role == 'student',
+                User.has_license == True
+            ).count()
+        }
+        
+        # Get recent system activities
+        recent_activities = []
+        
+        # Recent practice attempts (if any exist)
+        recent_practice = session.query(PracticeAttempt).options(
+            joinedload(PracticeAttempt.user)
+        ).order_by(PracticeAttempt.attempt_date.desc()).limit(3).all()
+        
+        for attempt in recent_practice:
+            recent_activities.append({
+                'type': 'practice',
+                'title': 'Practice Test Completed',
+                'details': f'{attempt.user.username} scored {attempt.score}/20 points',
+                'timestamp': attempt.attempt_date
+            })
+        
+        # Recent real test attempts (if any exist)
+        recent_real = session.query(RealTestAttempt).options(
+            joinedload(RealTestAttempt.user)
+        ).order_by(RealTestAttempt.attempt_date.desc()).limit(3).all()
+        
+        for attempt in recent_real:
+            status = "Passed" if attempt.passed else "Failed"
+            recent_activities.append({
+                'type': 'real_test',
+                'title': 'Real Test Completed',
+                'details': f'{attempt.user.username} {status.lower()} the official test',
+                'timestamp': attempt.attempt_date
+            })
+        
+        # Recent e-bike registrations (if any exist)
+        recent_ebikes = session.query(EBike).options(
+            joinedload(EBike.owner)
+        ).order_by(EBike.id.desc()).limit(2).all()
+        
+        for ebike in recent_ebikes:
+            recent_activities.append({
+                'type': 'ebike',
+                'title': 'E-bike Registered',
+                'details': f'{ebike.owner.username} registered a {ebike.model}',
+                'timestamp': datetime.now()  # Since we don't have registration_date in EBike model
+            })
+        
+        # Sort activities by timestamp
+        if recent_activities:
+            recent_activities.sort(key=lambda x: x['timestamp'], reverse=True)
+            recent_activities = recent_activities[:8]  # Show top 8 activities
+        
+        return render_template('admin_user_profile.html', 
+                             system_stats=system_stats, 
+                             recent_activities=recent_activities)
+    except Exception as e:
+        print(f"Error in admin_user_profile: {e}")
+        flash("An error occurred loading the admin profile.", "danger")
+        return redirect(url_for('dashboard'))
+    finally:
+        session.close()
+
 @app.route('/practice', methods=['GET'])
 @login_required
 def practice_selection():
+    # Redirect teachers to admin practice quiz management
+    if current_user.role == 'teacher':
+        return redirect(url_for('admin_practice_quizzes'))
+    
     session = SessionLocal()
     user = session.query(User).filter_by(id=current_user.id).first()
     tests = session.query(PracticeTest).all()
@@ -513,6 +606,48 @@ def practice_quiz(test_id):
 
     session.close()
     return render_template('practice_quiz.html', test=test, questions=questions)
+
+@app.route('/admin/practice_quizzes')
+@login_required
+def admin_practice_quizzes():
+    if current_user.role != 'teacher':
+        flash("Access denied.", "danger")
+        return redirect(url_for('dashboard'))
+
+    session = SessionLocal()
+    
+    # Get all practice tests with their questions and attempt statistics
+    practice_tests = session.query(PracticeTest).all()
+    
+    test_stats = []
+    for test in practice_tests:
+        # Get statistics for each test
+        total_attempts = session.query(PracticeAttempt).filter_by(test_id=test.id).count()
+        successful_attempts = session.query(PracticeAttempt).filter(
+            PracticeAttempt.test_id == test.id,
+            PracticeAttempt.score >= 16  # Assuming 16/20 is passing (80%)
+        ).count()
+        
+        avg_score = session.query(PracticeAttempt.score).filter_by(test_id=test.id).all()
+        average_score = sum([score[0] for score in avg_score]) / len(avg_score) if avg_score else 0
+        
+        # Get recent attempts
+        recent_attempts = session.query(PracticeAttempt).options(
+            joinedload(PracticeAttempt.user)
+        ).filter_by(test_id=test.id).order_by(PracticeAttempt.attempt_date.desc()).limit(5).all()
+        
+        test_stats.append({
+            'test': test,
+            'total_attempts': total_attempts,
+            'successful_attempts': successful_attempts,
+            'success_rate': (successful_attempts / total_attempts * 100) if total_attempts > 0 else 0,
+            'average_score': round(average_score, 1),
+            'recent_attempts': recent_attempts,
+            'question_count': len(test.questions)
+        })
+    
+    session.close()
+    return render_template('admin_practice_quizzes.html', test_stats=test_stats)
 
 @app.route('/approve_licenses', methods=['GET', 'POST'])
 @login_required
