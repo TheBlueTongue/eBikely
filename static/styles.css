@@ -23,7 +23,8 @@
     color: rgb(0, 0, 0);
 }
 
-.text-muted {
+/* Custom completed task styling - use .task-completed for specific cases */
+.task-completed {
     color: #777575; /* Lighter gray for completed tasks */
     text-decoration: line-through; /* Line-through for completed tasks */
 }
