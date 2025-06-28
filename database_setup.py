@@ -28,7 +28,7 @@ class User(Base, UserMixin):
     practice_attempts = relationship("PracticeAttempt", back_populates="user", cascade="all, delete-orphan")
     parking_spot = relationship("ParkingSpot", back_populates="reserved_user", uselist=False)
     reservations = relationship("ParkingReservation", back_populates="user")
-    incident_reports = relationship('IncidentReport', back_populates='user')
+    incident_reports = relationship('IncidentReport', foreign_keys='IncidentReport.reported_user_id', back_populates='reported_user')
     has_license = Column(Boolean, default=False)
     role = Column(String(10))  # 'student' or 'teacher'
     department = Column(String(150))  # for teachers
@@ -150,11 +150,24 @@ class RealTestAttempt(Base):
 class IncidentReport(Base):
     __tablename__ = 'incident_reports'
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
+    reported_user_id = Column(Integer, ForeignKey('users.id'))  # User being reported
+    reporter_id = Column(Integer, ForeignKey('users.id'))  # User making the report
+    incident_type = Column(String(50))  # Type of incident (unsafe riding, harassment, etc.)
+    severity = Column(String(20))  # Low, Medium, High, Critical
     description = Column(Text)
-    date_reported = Column(DateTime, default=datetime.utcnow)
+    location = Column(String(100))  # Where the incident occurred
+    date_of_incident = Column(Date)  # When the incident happened
+    date_reported = Column(DateTime, default=datetime.utcnow)  # When it was reported
+    status = Column(String(20), default='Open')  # Open, Under Investigation, Resolved, Dismissed
+    admin_notes = Column(Text)  # Notes from admin/teacher
+    action_taken = Column(Text)  # What action was taken
+    resolved_by = Column(Integer, ForeignKey('users.id'))  # Which admin resolved it
+    resolved_date = Column(DateTime)  # When it was resolved
 
-    user = relationship('User', back_populates='incident_reports')
+    # Relationships
+    reported_user = relationship('User', foreign_keys=[reported_user_id], back_populates='incident_reports')
+    reporter = relationship('User', foreign_keys=[reporter_id])
+    resolver = relationship('User', foreign_keys=[resolved_by])
 
 def seed_data():
     session = SessionLocal()

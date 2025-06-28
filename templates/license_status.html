@@ -24,7 +24,7 @@
                         <h2 class="license-title mb-3">✅ Fully Licensed</h2>
                         <p class="license-description">You are authorized to use the e-bike system and all associated facilities.</p>
                         <div class="license-badge">
-                            <span class="badge bg-success fs-6 px-3 py-2">Active License</span>
+                            <span class="badge badge-success">Active License</span>
                         </div>
                     </div>
                 </div>
@@ -33,14 +33,14 @@
                 {% if reports and reports|length > 0 %}
                     <div class="card feature-card p-4">
                         <h3 class="mb-4">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
                             Incident Reports
                         </h3>
                         <div class="incident-grid">
                             {% for report in reports %}
                                 <div class="incident-card">
                                     <div class="incident-date">
-                                        <i class="fas fa-calendar-alt me-2"></i>
+                                        <i class="fas fa-calendar-alt mr-2"></i>
                                         {{ report.date_reported.strftime('%B %d, %Y') }}
                                     </div>
                                     <div class="incident-description">
@@ -72,11 +72,11 @@
                         <h2 class="license-title mb-3">🎉 Test Passed!</h2>
                         <p class="license-description mb-4">Congratulations! You've successfully passed the safety test. Your license is currently pending teacher approval.</p>
                         <div class="license-badge">
-                            <span class="badge bg-warning fs-6 px-3 py-2">Pending Approval</span>
+                            <span class="badge badge-warning">Pending Approval</span>
                         </div>
                         <div class="approval-note mt-4 p-3">
                             <small class="opacity-75">
-                                <i class="fas fa-info-circle me-1"></i>
+                                <i class="fas fa-info-circle mr-1"></i>
                                 A teacher will review and approve your license shortly. You'll receive full access once approved.
                             </small>
                         </div>
@@ -93,16 +93,16 @@
                         <h2 class="license-title mb-3">⚠️ License Required</h2>
                         <p class="license-description mb-4">You need to pass the safety test and receive teacher approval before accessing the e-bike system.</p>
                         <div class="license-badge mb-4">
-                            <span class="badge bg-danger fs-6 px-3 py-2">Not Licensed</span>
+                            <span class="badge badge-danger">Not Licensed</span>
                         </div>
                         <div class="test-action">
                             <a href="{{ url_for('real_test') }}" class="btn btn-primary btn-lg pulse">
-                                <i class="fas fa-clipboard-check me-2"></i>Take the Safety Test
+                                <i class="fas fa-clipboard-check mr-2"></i>Take the Safety Test
                             </a>
                         </div>
                         <div class="test-info mt-4 p-3">
                             <small class="opacity-75">
-                                <i class="fas fa-lightbulb me-1"></i>
+                                <i class="fas fa-lightbulb mr-1"></i>
                                 The safety test covers e-bike operation, traffic rules, and safety protocols. You need 18/20 to pass.
                             </small>
                         </div>
@@ -259,19 +259,6 @@
 
 .text-danger {
     color: #ff4c4c !important;
-}
-
-.bg-success {
-    background-color: #28a745 !important;
-}
-
-.bg-warning {
-    background-color: #ffc107 !important;
-    color: #000 !important;
-}
-
-.bg-danger {
-    background-color: #dc3545 !important;
 }
 
 /* Responsive */

@@ -237,6 +237,10 @@
             <i class="fas fa-id-card"></i>
             <span>License Status</span>
           </a>
+          <a href="{{ url_for('report_incident') }}" class="action-btn">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>Report Incident</span>
+          </a>
           {% if not current_user.has_license %}
             <a href="{{ url_for('real_test') }}" class="action-btn">
               <i class="fas fa-certificate"></i>
@@ -244,6 +248,83 @@
             </a>
           {% endif %}
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Incident Reports Section -->
+  <div class="row mt-4 slide-up-delay">
+    <div class="col-12">
+      <div class="card feature-card p-4">
+        <div class="card-header gradient-red mb-3">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          <h4 class="mb-0">Incident Reports</h4>
+        </div>
+        
+        {% if incident_reports %}
+          <div class="incident-list">
+            {% for report in incident_reports %}
+              <div class="incident-item">
+                <div class="incident-header">
+                  <div class="incident-type">
+                    <i class="fas fa-flag me-2"></i>
+                    {{ report.incident_type.replace('_', ' ').title() }}
+                  </div>
+                  <div class="incident-status">
+                    {% if report.status == 'Open' %}
+                      <span class="badge bg-warning">{{ report.status }}</span>
+                    {% elif report.status == 'Under Investigation' %}
+                      <span class="badge bg-info">{{ report.status }}</span>
+                    {% elif report.status == 'Resolved' %}
+                      <span class="badge bg-success">{{ report.status }}</span>
+                    {% elif report.status == 'Dismissed' %}
+                      <span class="badge bg-secondary">{{ report.status }}</span>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="incident-details">
+                  <div class="incident-severity">
+                    <strong>Severity:</strong> 
+                    <span class="severity-{{ report.severity.lower() }}">{{ report.severity }}</span>
+                  </div>
+                  <div class="incident-location">
+                    <strong>Location:</strong> {{ report.location }}
+                  </div>
+                  <div class="incident-date">
+                    <strong>Date:</strong> {{ report.date_of_incident.strftime('%B %d, %Y') }}
+                  </div>
+                </div>
+                <div class="incident-description">
+                  <strong>Description:</strong> {{ report.description }}
+                </div>
+                {% if report.admin_notes %}
+                  <div class="admin-notes">
+                    <strong>Admin Notes:</strong> {{ report.admin_notes }}
+                  </div>
+                {% endif %}
+                {% if report.action_taken %}
+                  <div class="action-taken">
+                    <strong>Action Taken:</strong> {{ report.action_taken }}
+                  </div>
+                {% endif %}
+                <div class="incident-footer">
+                  <small class="text-muted">
+                    Reported by {{ report.reporter.username }} on {{ report.date_reported.strftime('%B %d, %Y at %I:%M %p') }}
+                    {% if report.resolver %}
+                      | Resolved by {{ report.resolver.username }}
+                    {% endif %}
+                  </small>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty-state text-center py-4">
+            <i class="fas fa-shield-check fa-3x opacity-50 mb-3"></i>
+            <h5>No Incident Reports</h5>
+            <p class="opacity-75">You have no incident reports filed against you.</p>
+          </div>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -309,6 +390,10 @@
 
 .gradient-teal {
     color: #26c6da;
+}
+
+.gradient-red {
+    color: #ff6b6b;
 }
 
 /* User Info */
@@ -577,6 +662,65 @@
     color: white;
     transform: translateY(-1px);
 }
+
+/* Incident Reports */
+.incident-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.incident-item {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid #ff6b6b;
+}
+
+.incident-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.incident-type {
+    font-weight: bold;
+    color: #ff6b6b;
+}
+
+.incident-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.incident-description {
+    margin: 0.5rem 0;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 0.25rem;
+}
+
+.admin-notes, .action-taken {
+    margin: 0.5rem 0;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 0.25rem;
+}
+
+.incident-footer {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.severity-low { color: #28a745; }
+.severity-medium { color: #ffc107; }
+.severity-high { color: #fd7e14; }
+.severity-critical { color: #dc3545; }
 
 /* Responsive */
 @media (max-width: 768px) {

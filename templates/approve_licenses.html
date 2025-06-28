@@ -17,7 +17,7 @@
     <div class="col-lg-8 col-md-10">
       <div class="card feature-card p-4">
         <div class="card-header gradient-green mb-4">
-          <i class="fas fa-clipboard-check me-2"></i>
+          <i class="fas fa-clipboard-check mr-2"></i>
           <h4 class="mb-0">Pending License Approvals</h4>
         </div>
 
@@ -38,7 +38,7 @@
                           <p class="student-meta">Year {{ student.year }} • {{ student.house }} House</p>
                           <div class="student-status">
                             <span class="status-badge status-pending">
-                              <i class="fas fa-clock me-1"></i>
+                              <i class="fas fa-clock mr-1"></i>
                               Awaiting Approval
                             </span>
                           </div>
@@ -54,15 +54,15 @@
               <div class="d-flex justify-content-between align-items-center">
                 <div class="selection-controls">
                   <button type="button" class="btn btn-outline-light btn-sm" onclick="selectAll()">
-                    <i class="fas fa-check-square me-1"></i>Select All
+                    <i class="fas fa-check-square mr-1"></i>Select All
                   </button>
-                  <button type="button" class="btn btn-outline-light btn-sm ms-2" onclick="clearAll()">
-                    <i class="fas fa-square me-1"></i>Clear All
+                  <button type="button" class="btn btn-outline-light btn-sm ml-2" onclick="clearAll()">
+                    <i class="fas fa-square mr-1"></i>Clear All
                   </button>
                 </div>
                 <div class="submit-controls">
                   <button type="submit" class="btn btn-success btn-lg" id="approveBtn">
-                    <i class="fas fa-check me-2"></i>Approve Selected
+                    <i class="fas fa-check mr-2"></i>Approve Selected
                   </button>
                 </div>
               </div>
@@ -76,7 +76,7 @@
             <h4 class="mb-3">No Pending Approvals</h4>
             <p class="opacity-75 mb-4">All students who have passed their tests have been approved.</p>
             <a href="{{ url_for('dashboard') }}" class="btn btn-outline-light">
-              <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+              <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
             </a>
           </div>
         {% endif %}

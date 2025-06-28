@@ -1,0 +1,537 @@
+{% extends "base.html" %}
+{% block title %}Incident Management{% endblock %}
+
+{% block content %}
+<div class="container welcome-container">
+  <!-- Hero Section -->
+  <div class="hero-section card text-white p-5 mb-5 fade-in">
+    <div class="text-center">
+      <i class="fas fa-shield-alt dashboard-icon mb-3"></i>
+      <h1 class="display-4 mb-3">Incident Management</h1>
+      <p class="lead mb-0">Monitor and manage reported incidents</p>
+    </div>
+  </div>
+
+  <!-- Statistics Overview -->
+  <div class="row slide-up-delay g-4 mb-5">
+    <div class="col-md-3">
+      <div class="card feature-card p-4 text-center">
+        <div class="stat-icon mb-3">
+          <i class="fas fa-file-alt fa-3x text-primary"></i>
+        </div>
+        <h3 class="stat-number">{{ stats.total_reports }}</h3>
+        <h5 class="stat-label">Total Reports</h5>
+        <p class="stat-description">All time incidents</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card feature-card p-4 text-center">
+        <div class="stat-icon mb-3">
+          <i class="fas fa-clock fa-3x text-warning"></i>
+        </div>
+        <h3 class="stat-number">{{ stats.open_reports }}</h3>
+        <h5 class="stat-label">Open Reports</h5>
+        <p class="stat-description">Awaiting action</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card feature-card p-4 text-center">
+        <div class="stat-icon mb-3">
+          <i class="fas fa-check-circle fa-3x text-success"></i>
+        </div>
+        <h3 class="stat-number">{{ stats.resolved_reports }}</h3>
+        <h5 class="stat-label">Resolved</h5>
+        <p class="stat-description">Completed cases</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card feature-card p-4 text-center">
+        <div class="stat-icon mb-3">
+          <i class="fas fa-exclamation-triangle fa-3x text-danger"></i>
+        </div>
+        <h3 class="stat-number">{{ stats.critical_reports }}</h3>
+        <h5 class="stat-label">Critical</h5>
+        <p class="stat-description">High priority</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters and Actions -->
+  <div class="row slide-up-delay mb-4">
+    <div class="col-12">
+      <div class="card feature-card p-4">
+        <div class="card-header gradient-blue mb-3">
+          <i class="fas fa-filter mr-2"></i>
+          <h4 class="mb-0">Filters & Actions</h4>
+        </div>
+        <div class="row align-items-end">
+          <div class="col-md-3">
+            <label class="form-label">Status Filter</label>
+            <select class="form-select form-control-modern" id="statusFilter" onchange="applyFilters()">
+              <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Status</option>
+              <option value="Open" {% if status_filter == 'Open' %}selected{% endif %}>Open</option>
+              <option value="Under Investigation" {% if status_filter == 'Under Investigation' %}selected{% endif %}>Under Investigation</option>
+              <option value="Resolved" {% if status_filter == 'Resolved' %}selected{% endif %}>Resolved</option>
+              <option value="Dismissed" {% if status_filter == 'Dismissed' %}selected{% endif %}>Dismissed</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Severity Filter</label>
+            <select class="form-select form-control-modern" id="severityFilter" onchange="applyFilters()">
+              <option value="all" {% if severity_filter == 'all' %}selected{% endif %}>All Severity</option>
+              <option value="Critical" {% if severity_filter == 'Critical' %}selected{% endif %}>Critical</option>
+              <option value="High" {% if severity_filter == 'High' %}selected{% endif %}>High</option>
+              <option value="Medium" {% if severity_filter == 'Medium' %}selected{% endif %}>Medium</option>
+              <option value="Low" {% if severity_filter == 'Low' %}selected{% endif %}>Low</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <button class="btn btn-outline-light w-100" onclick="clearFilters()">
+              <i class="fas fa-undo mr-2"></i>Clear Filters
+            </button>
+          </div>
+          <div class="col-md-3">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-primary w-100">
+              <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Incidents List -->
+  <div class="row slide-up-delay">
+    <div class="col-12">
+      <div class="card feature-card p-4">
+        <div class="card-header gradient-orange mb-4">
+          <i class="fas fa-list mr-2"></i>
+          <h4 class="mb-0">Incident Reports</h4>
+        </div>
+
+        {% if incidents %}
+          <div class="incidents-grid">
+            {% for incident in incidents %}
+              <div class="incident-card">
+                <div class="incident-header">
+                  <div class="incident-info">
+                    <h5 class="incident-title">{{ incident.incident_type.replace('_', ' ').title() }}</h5>
+                    <p class="incident-meta">
+                      Reported: {{ incident.date_reported.strftime('%b %d, %Y at %I:%M %p') }}
+                    </p>
+                  </div>
+                  <div class="incident-badges">
+                    <span class="severity-badge severity-{{ incident.severity.lower() }}">
+                      {{ incident.severity }}
+                    </span>
+                    <span class="status-badge status-{{ incident.status.lower().replace(' ', '-') }}">
+                      {{ incident.status }}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="incident-details">
+                  <div class="detail-row">
+                    <div class="detail-item">
+                      <i class="fas fa-user-circle text-danger"></i>
+                      <span class="detail-label">Reported User:</span>
+                      <span class="detail-value">{{ incident.reported_user.username }}</span>
+                    </div>
+                    <div class="detail-item">
+                      <i class="fas fa-user text-info"></i>
+                      <span class="detail-label">Reporter:</span>
+                      <span class="detail-value">{{ incident.reporter.username }}</span>
+                    </div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-item">
+                      <i class="fas fa-map-marker-alt text-warning"></i>
+                      <span class="detail-label">Location:</span>
+                      <span class="detail-value">{{ incident.location }}</span>
+                    </div>
+                    <div class="detail-item">
+                      <i class="fas fa-calendar text-success"></i>
+                      <span class="detail-label">Incident Date:</span>
+                      <span class="detail-value">{{ incident.date_of_incident.strftime('%b %d, %Y') }}</span>
+                    </div>
+                  </div>
+                  <div class="incident-description">
+                    <i class="fas fa-comment mr-2"></i>
+                    <strong>Description:</strong>
+                    <p>{{ incident.description }}</p>
+                  </div>
+                  {% if incident.admin_notes %}
+                    <div class="admin-notes">
+                      <i class="fas fa-sticky-note mr-2"></i>
+                      <strong>Admin Notes:</strong>
+                      <p>{{ incident.admin_notes }}</p>
+                    </div>
+                  {% endif %}
+                </div>
+
+                <div class="incident-actions">
+                  <a href="{{ url_for('manage_incident', incident_id=incident.id) }}" class="btn btn-outline-light btn-sm">
+                    <i class="fas fa-edit mr-1"></i>Manage
+                  </a>
+                  {% if incident.status == 'Open' %}
+                    <span class="action-needed">
+                      <i class="fas fa-exclamation-circle mr-1"></i>Action Needed
+                    </span>
+                  {% elif incident.status == 'Resolved' %}
+                    <span class="resolved-info">
+                      <i class="fas fa-check-circle mr-1"></i>
+                      Resolved by {{ incident.resolver.username if incident.resolver else 'Unknown' }}
+                    </span>
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty-state text-center py-5">
+            <div class="empty-icon mb-4">
+              <i class="fas fa-inbox fa-4x opacity-50"></i>
+            </div>
+            <h4 class="mb-3">No Incidents Found</h4>
+            <p class="opacity-75 mb-4">
+              {% if status_filter != 'all' or severity_filter != 'all' %}
+                No incidents match your current filters.
+              {% else %}
+                No incidents have been reported yet.
+              {% endif %}
+            </p>
+            {% if status_filter != 'all' or severity_filter != 'all' %}
+              <button class="btn btn-outline-light" onclick="clearFilters()">
+                <i class="fas fa-undo me-2"></i>Clear Filters
+              </button>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function applyFilters() {
+    const status = document.getElementById('statusFilter').value;
+    const severity = document.getElementById('severityFilter').value;
+    
+    const params = new URLSearchParams();
+    if (status !== 'all') params.append('status', status);
+    if (severity !== 'all') params.append('severity', severity);
+    
+    window.location.href = '{{ url_for("admin_incidents") }}' + (params.toString() ? '?' + params.toString() : '');
+}
+
+function clearFilters() {
+    window.location.href = '{{ url_for("admin_incidents") }}';
+}
+</script>
+
+<style>
+/* Layout */
+.welcome-container {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+}
+
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(135deg, #dc3545 0%, #6f42c1 100%);
+    border-radius: 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.dashboard-icon {
+    font-size: 3rem;
+    color: #ffc107;
+}
+
+/* Feature Cards */
+.feature-card {
+    background: linear-gradient(to right, #3f51b5cc, #2196f3cc);
+    border-radius: 1rem;
+    backdrop-filter: blur(6px);
+    border: none;
+    color: white;
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Card Headers */
+.card-header {
+    background: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.gradient-blue { color: #00c6ff; }
+.gradient-orange { color: #ff9800; }
+
+/* Statistics */
+.stat-icon { margin-bottom: 1rem; }
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #00c6ff;
+}
+.stat-label {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    opacity: 0.9;
+}
+.stat-description {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+/* Form Controls */
+.form-control-modern, .form-select {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    color: white;
+    padding: 0.5rem 0.75rem;
+}
+
+.form-control-modern:focus, .form-select:focus {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: #00c6ff;
+    box-shadow: 0 0 0 0.25rem rgba(0, 198, 255, 0.25);
+    color: white;
+}
+
+.form-select option {
+    background: #2c3e50;
+    color: white;
+}
+
+/* Incidents Grid */
+.incidents-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.incident-card {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.incident-card:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Incident Header */
+.incident-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.incident-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0 0 0.25rem 0;
+    color: white;
+}
+
+.incident-meta {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin: 0;
+}
+
+.incident-badges {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* Badges */
+.severity-badge, .status-badge {
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.severity-critical { background: rgba(220, 53, 69, 0.3); color: #dc3545; border: 1px solid rgba(220, 53, 69, 0.5); }
+.severity-high { background: rgba(255, 193, 7, 0.3); color: #ffc107; border: 1px solid rgba(255, 193, 7, 0.5); }
+.severity-medium { background: rgba(0, 123, 255, 0.3); color: #007bff; border: 1px solid rgba(0, 123, 255, 0.5); }
+.severity-low { background: rgba(108, 117, 125, 0.3); color: #6c757d; border: 1px solid rgba(108, 117, 125, 0.5); }
+
+.status-open { background: rgba(255, 193, 7, 0.3); color: #ffc107; border: 1px solid rgba(255, 193, 7, 0.5); }
+.status-under-investigation { background: rgba(0, 123, 255, 0.3); color: #007bff; border: 1px solid rgba(0, 123, 255, 0.5); }
+.status-resolved { background: rgba(40, 167, 69, 0.3); color: #28a745; border: 1px solid rgba(40, 167, 69, 0.5); }
+.status-dismissed { background: rgba(108, 117, 125, 0.3); color: #6c757d; border: 1px solid rgba(108, 117, 125, 0.5); }
+
+/* Incident Details */
+.incident-details {
+    margin-bottom: 1rem;
+}
+
+.detail-row {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 200px;
+}
+
+.detail-label {
+    font-weight: 500;
+    opacity: 0.8;
+}
+
+.detail-value {
+    font-weight: 600;
+}
+
+.incident-description, .admin-notes {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border-left: 4px solid #00c6ff;
+}
+
+.incident-description p, .admin-notes p {
+    margin: 0.5rem 0 0 0;
+    line-height: 1.5;
+}
+
+/* Incident Actions */
+.incident-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.action-needed {
+    color: #ffc107;
+    font-weight: 600;
+}
+
+.resolved-info {
+    color: #28a745;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+/* Buttons */
+.btn-outline-light {
+    border-color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.9);
+    transition: all 0.3s ease;
+}
+
+.btn-outline-light:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.8);
+    color: white;
+    transform: translateY(-1px);
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(45deg, #0056b3, #004085);
+    transform: translateY(-1px);
+}
+
+/* Empty State */
+.empty-state {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.empty-icon {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+/* Text Colors */
+.text-primary { color: #00c6ff !important; }
+.text-success { color: #00ff7f !important; }
+.text-info { color: #17a2b8 !important; }
+.text-warning { color: #ffc107 !important; }
+.text-danger { color: #dc3545 !important; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .welcome-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+    
+    .incident-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .detail-row {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .incident-actions {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+}
+
+/* Animations */
+.fade-in {
+    animation: fadeIn 1s ease-in;
+}
+
+.slide-up-delay {
+    animation: slideUp 0.8s ease-out 0.3s backwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}

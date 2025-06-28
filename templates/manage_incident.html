@@ -1,0 +1,530 @@
+{% extends "base.html" %}
+{% block title %}Manage Incident{% endblock %}
+
+{% block content %}
+<div class="container welcome-container">
+  <!-- Hero Section -->
+  <div class="hero-section card text-white p-5 mb-5 fade-in">
+    <div class="text-center">
+      <i class="fas fa-gavel dashboard-icon mb-3"></i>
+      <h1 class="display-4 mb-3">Manage Incident</h1>
+      <p class="lead mb-0">Review and take action on incident report #{{ incident.id }}</p>
+    </div>
+  </div>
+
+  <div class="row slide-up-delay">
+    <!-- Incident Details -->
+    <div class="col-lg-8">
+      <div class="card feature-card p-4 mb-4">
+        <div class="card-header gradient-blue mb-4">
+          <i class="fas fa-file-alt mr-2"></i>
+          <h4 class="mb-0">Incident Details</h4>
+        </div>
+
+        <!-- Status and Severity -->
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <div class="info-card">
+              <div class="info-icon">
+                <i class="fas fa-info-circle"></i>
+              </div>
+              <div class="info-content">
+                <span class="info-label">Current Status</span>
+                <span class="status-badge status-{{ incident.status.lower().replace(' ', '-') }}">
+                  {{ incident.status }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="info-card">
+              <div class="info-icon">
+                <i class="fas fa-thermometer-half"></i>
+              </div>
+              <div class="info-content">
+                <span class="info-label">Severity Level</span>
+                <span class="severity-badge severity-{{ incident.severity.lower() }}">
+                  {{ incident.severity }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Users Involved -->
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <div class="user-card reported-user">
+              <div class="user-avatar">
+                <i class="fas fa-user-times"></i>
+              </div>
+              <div class="user-info">
+                <span class="user-label">Reported User</span>
+                <span class="user-name">{{ incident.reported_user.username }}</span>
+                <span class="user-details">{{ incident.reported_user.role.title() }} - {{ incident.reported_user.house or incident.reported_user.department or 'N/A' }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="user-card reporter">
+              <div class="user-avatar">
+                <i class="fas fa-user-shield"></i>
+              </div>
+              <div class="user-info">
+                <span class="user-label">Reporter</span>
+                <span class="user-name">{{ incident.reporter.username }}</span>
+                <span class="user-details">{{ incident.reporter.role.title() }} - {{ incident.reporter.house or incident.reporter.department or 'N/A' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Incident Information -->
+        <div class="detail-section">
+          <h5 class="section-title">
+            <i class="fas fa-clipboard-list mr-2"></i>Incident Information
+          </h5>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="detail-item">
+                <span class="detail-label">Type:</span>
+                <span class="detail-value">{{ incident.incident_type.replace('_', ' ').title() }}</span>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="detail-item">
+                <span class="detail-label">Location:</span>
+                <span class="detail-value">{{ incident.location }}</span>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="detail-item">
+                <span class="detail-label">Incident Date:</span>
+                <span class="detail-value">{{ incident.date_of_incident.strftime('%B %d, %Y') }}</span>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="detail-item">
+                <span class="detail-label">Reported Date:</span>
+                <span class="detail-value">{{ incident.date_reported.strftime('%B %d, %Y at %I:%M %p') }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="detail-section">
+          <h5 class="section-title">
+            <i class="fas fa-comment mr-2"></i>Description
+          </h5>
+          <div class="description-box">
+            {{ incident.description }}
+          </div>
+        </div>
+
+        <!-- Resolution Information -->
+        {% if incident.resolved_date %}
+          <div class="detail-section">
+            <h5 class="section-title">
+              <i class="fas fa-check-circle mr-2"></i>Resolution Information
+            </h5>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="detail-item">
+                  <span class="detail-label">Resolved By:</span>
+                  <span class="detail-value">{{ incident.resolver.username if incident.resolver else 'Unknown' }}</span>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="detail-item">
+                  <span class="detail-label">Resolution Date:</span>
+                  <span class="detail-value">{{ incident.resolved_date.strftime('%B %d, %Y at %I:%M %p') }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Action Panel -->
+    <div class="col-lg-4">
+      <div class="card feature-card p-4">
+        <div class="card-header gradient-orange mb-4">
+          <i class="fas fa-tools mr-2"></i>
+          <h4 class="mb-0">Take Action</h4>
+        </div>
+
+        <form method="POST">
+          {{ form.hidden_tag() }}
+          
+          <div class="mb-3">
+            <label for="{{ form.status.id }}" class="form-label">
+              <i class="fas fa-flag mr-2"></i>Update Status
+            </label>
+            {{ form.status(class="form-select form-control-modern") }}
+          </div>
+
+          <div class="mb-3">
+            <label for="{{ form.admin_notes.id }}" class="form-label">
+              <i class="fas fa-sticky-note mr-2"></i>Admin Notes
+            </label>
+            {{ form.admin_notes(class="form-control form-control-modern", rows="4", placeholder="Add notes about your investigation or findings...") }}
+          </div>
+
+          <div class="mb-4">
+            <label for="{{ form.action_taken.id }}" class="form-label">
+              <i class="fas fa-gavel mr-2"></i>Action Taken
+            </label>
+            {{ form.action_taken(class="form-control form-control-modern", rows="4", placeholder="Describe any disciplinary action or resolution...") }}
+          </div>
+
+          <div class="action-buttons">
+            {{ form.submit(class="btn btn-primary w-100 mb-3") }}
+            <a href="{{ url_for('admin_incidents') }}" class="btn btn-outline-light w-100">
+              <i class="fas fa-arrow-left mr-2"></i>Back to Incidents
+            </a>
+          </div>
+        </form>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions mt-4">
+          <h6 class="mb-3">
+            <i class="fas fa-bolt mr-2"></i>Quick Actions
+          </h6>
+          <div class="d-grid gap-2">
+            <a href="{{ url_for('admin_ebike_overview') }}" class="btn btn-outline-light btn-sm">
+              <i class="fas fa-bicycle mr-2"></i>View E-bike Records
+            </a>
+            <a href="{{ url_for('admin_incidents') }}?status=Open" class="btn btn-outline-light btn-sm">
+              <i class="fas fa-clock mr-2"></i>View Other Open Cases
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Layout */
+.welcome-container {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+}
+
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(135deg, #6f42c1 0%, #007bff 100%);
+    border-radius: 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.dashboard-icon {
+    font-size: 3rem;
+    color: #ffc107;
+}
+
+/* Feature Cards */
+.feature-card {
+    background: linear-gradient(to right, #3f51b5cc, #2196f3cc);
+    border-radius: 1rem;
+    backdrop-filter: blur(6px);
+    border: none;
+    color: white;
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Card Headers */
+.card-header {
+    background: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.gradient-blue { color: #00c6ff; }
+.gradient-orange { color: #ff9800; }
+
+/* Info Cards */
+.info-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.info-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #00c6ff;
+    flex-shrink: 0;
+}
+
+.info-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.info-label {
+    font-size: 0.8rem;
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Badges */
+.severity-badge, .status-badge {
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.severity-critical { background: rgba(220, 53, 69, 0.3); color: #dc3545; border: 1px solid rgba(220, 53, 69, 0.5); }
+.severity-high { background: rgba(255, 193, 7, 0.3); color: #ffc107; border: 1px solid rgba(255, 193, 7, 0.5); }
+.severity-medium { background: rgba(0, 123, 255, 0.3); color: #007bff; border: 1px solid rgba(0, 123, 255, 0.5); }
+.severity-low { background: rgba(108, 117, 125, 0.3); color: #6c757d; border: 1px solid rgba(108, 117, 125, 0.5); }
+
+.status-open { background: rgba(255, 193, 7, 0.3); color: #ffc107; border: 1px solid rgba(255, 193, 7, 0.5); }
+.status-under-investigation { background: rgba(0, 123, 255, 0.3); color: #007bff; border: 1px solid rgba(0, 123, 255, 0.5); }
+.status-resolved { background: rgba(40, 167, 69, 0.3); color: #28a745; border: 1px solid rgba(40, 167, 69, 0.5); }
+.status-dismissed { background: rgba(108, 117, 125, 0.3); color: #6c757d; border: 1px solid rgba(108, 117, 125, 0.5); }
+
+/* User Cards */
+.user-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.user-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.reported-user .user-avatar {
+    background: rgba(220, 53, 69, 0.2);
+    color: #dc3545;
+}
+
+.reporter .user-avatar {
+    background: rgba(0, 123, 255, 0.2);
+    color: #007bff;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.user-label {
+    font-size: 0.8rem;
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.user-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.user-details {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+/* Detail Sections */
+.detail-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border-left: 4px solid #00c6ff;
+}
+
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #00c6ff;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    font-weight: 500;
+    opacity: 0.8;
+}
+
+.detail-value {
+    font-weight: 600;
+    text-align: right;
+}
+
+.description-box {
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    line-height: 1.6;
+    font-style: italic;
+}
+
+/* Form Styling */
+.form-label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.form-control-modern, .form-select {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    color: white;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control-modern:focus, .form-select:focus {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: #00c6ff;
+    box-shadow: 0 0 0 0.25rem rgba(0, 198, 255, 0.25);
+    color: white;
+}
+
+.form-control-modern::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.form-select option {
+    background: #2c3e50;
+    color: white;
+}
+
+/* Buttons */
+.btn-primary {
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(45deg, #0056b3, #004085);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4);
+}
+
+.btn-outline-light {
+    border-color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-light:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.8);
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* Quick Actions */
+.quick-actions {
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.quick-actions h6 {
+    color: #00c6ff;
+    font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .welcome-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+    
+    .user-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
+    }
+    
+    .detail-item {
+        flex-direction: column;
+        gap: 0.25rem;
+        text-align: center;
+    }
+    
+    .detail-value {
+        text-align: center;
+    }
+}
+
+/* Animations */
+.fade-in {
+    animation: fadeIn 1s ease-in;
+}
+
+.slide-up-delay {
+    animation: slideUp 0.8s ease-out 0.3s backwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}

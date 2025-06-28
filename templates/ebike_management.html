@@ -22,7 +22,7 @@
                 {% if ebikes %}
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h2 class="mb-0">Your Registered E-Bikes</h2>
-                        <span class="badge bg-success fs-6">{{ ebikes|length }} bike{{ 's' if ebikes|length != 1 else '' }}</span>
+                        <span class="badge badge-success">{{ ebikes|length }} bike{{ 's' if ebikes|length != 1 else '' }}</span>
                     </div>
                     <div class="ebike-grid">
                         {% for ebike in ebikes %}
@@ -87,7 +87,7 @@
                     </div>
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary btn-lg pulse">
-                            <i class="fas fa-plus me-2"></i>Register E-Bike
+                            <i class="fas fa-plus mr-2"></i>Register E-Bike
                         </button>
                     </div>
                 </form>

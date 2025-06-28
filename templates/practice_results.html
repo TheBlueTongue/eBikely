@@ -26,13 +26,13 @@
                 <div>
                   <strong>{{ label }}:</strong> {{ option }}
                   {% if label == result.correct_label %}
-                    <span class="badge bg-success ms-2">✔ Correct answer</span>
+                    <span class="badge badge-success ml-2">✔ Correct answer</span>
                   {% endif %}
                   {% if label == result.user_label %}
                     {% if result.is_correct %}
-                      <span class="badge bg-light text-dark ms-2">Your answer</span>
+                      <span class="badge badge-light ml-2">Your answer</span>
                     {% else %}
-                      <span class="badge bg-danger text-white ms-2">✘ Your answer</span>
+                      <span class="badge badge-danger ml-2">✘ Your answer</span>
                     {% endif %}
                   {% endif %}
                 </div>
@@ -57,21 +57,7 @@
   padding: 0.3em 0.5em;
   border-radius: 0.5rem;
 }
-.bg-success {
-  background-color: #28a745 !important;
-}
-.bg-danger {
-  background-color: #dc3545 !important;
-}
-.bg-light {
-  background-color: #f8f9fa !important;
-}
-.text-dark {
-  color: #212529 !important;
-}
-.ms-2 {
-  margin-left: 0.5rem;
-}
+
 
 .dashboard-container {
   padding-top: 3rem;

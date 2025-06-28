@@ -98,6 +98,10 @@ def dashboard():
         ).distinct().count()
         total_ebikes = session.query(EBike).count()
         total_practice_attempts = session.query(PracticeAttempt).count()
+        
+        # Add incident statistics
+        total_incidents = session.query(IncidentReport).count()
+        open_incidents = session.query(IncidentReport).filter_by(status='Open').count()
 
         session.close()
         return render_template(
@@ -105,7 +109,9 @@ def dashboard():
             student_count=student_count,
             pending_licenses=pending_licenses,
             total_ebikes=total_ebikes,
-            total_practice_attempts=total_practice_attempts
+            total_practice_attempts=total_practice_attempts,
+            total_incidents=total_incidents,
+            open_incidents=open_incidents
         )
 
     # Student dashboard view
@@ -434,11 +440,17 @@ def user_profile():
             joinedload(User.reservations)
         ).filter_by(id=current_user.id).first()
         
+        # Get incident reports where this user is reported
+        incident_reports = session.query(IncidentReport).options(
+            joinedload(IncidentReport.reporter),
+            joinedload(IncidentReport.resolver)
+        ).filter_by(reported_user_id=current_user.id).order_by(IncidentReport.date_reported.desc()).all()
+        
         if not user:
             flash('User not found.', 'error')
             return redirect(url_for('dashboard'))
         
-        return render_template('user_profile.html', user=user)
+        return render_template('user_profile.html', user=user, incident_reports=incident_reports)
     finally:
         session.close()
 
@@ -696,7 +708,7 @@ def license_page():
     incident_reports = []
 
     if has_license:
-        incident_reports = session.query(IncidentReport).filter_by(user_id=current_user.id).all()
+        incident_reports = session.query(IncidentReport).filter_by(reported_user_id=current_user.id).all()
 
     session.close()
     return render_template(
@@ -707,9 +719,118 @@ def license_page():
         reports=incident_reports
     )
 
+@app.route('/report_incident', methods=['GET', 'POST'])
+@login_required
+def report_incident():
+    form = forms.IncidentReportForm()
+    session = SessionLocal()
+    
+    # Populate the dropdown with all users except the current user
+    users = session.query(User).filter(User.id != current_user.id).all()
+    form.reported_user.choices = [(user.id, f"{user.username} ({user.role})") for user in users]
+    
+    if form.validate_on_submit():
+        new_report = IncidentReport(
+            reported_user_id=form.reported_user.data,
+            reporter_id=current_user.id,
+            incident_type=form.incident_type.data,
+            severity=form.severity.data,
+            description=form.description.data,
+            location=form.location.data,
+            date_of_incident=form.date_of_incident.data,
+            status='Open'
+        )
+        session.add(new_report)
+        session.commit()
+        flash('Incident report submitted successfully. An administrator will review it.', 'success')
+        session.close()
+        return redirect(url_for('dashboard'))
+    
+    session.close()
+    return render_template('report_incident.html', form=form)
 
+@app.route('/admin/incidents')
+@login_required
+def admin_incidents():
+    if current_user.role != 'teacher':
+        flash("Access denied.", "danger")
+        return redirect(url_for('dashboard'))
+    
+    session = SessionLocal()
+    
+    # Get filter parameters
+    status_filter = request.args.get('status', 'all')
+    severity_filter = request.args.get('severity', 'all')
+    
+    # Build query
+    query = session.query(IncidentReport).options(
+        joinedload(IncidentReport.reported_user),
+        joinedload(IncidentReport.reporter),
+        joinedload(IncidentReport.resolver)
+    )
+    
+    if status_filter != 'all':
+        query = query.filter(IncidentReport.status == status_filter)
+    if severity_filter != 'all':
+        query = query.filter(IncidentReport.severity == severity_filter)
+    
+    incidents = query.order_by(IncidentReport.date_reported.desc()).all()
+    
+    # Get statistics
+    stats = {
+        'total_reports': session.query(IncidentReport).count(),
+        'open_reports': session.query(IncidentReport).filter_by(status='Open').count(),
+        'resolved_reports': session.query(IncidentReport).filter_by(status='Resolved').count(),
+        'critical_reports': session.query(IncidentReport).filter_by(severity='Critical').count(),
+    }
+    
+    session.close()
+    return render_template('admin_incidents.html', 
+                         incidents=incidents, 
+                         stats=stats,
+                         status_filter=status_filter,
+                         severity_filter=severity_filter)
 
-
+@app.route('/admin/incident/<int:incident_id>', methods=['GET', 'POST'])
+@login_required
+def manage_incident(incident_id):
+    if current_user.role != 'teacher':
+        flash("Access denied.", "danger")
+        return redirect(url_for('dashboard'))
+    
+    session = SessionLocal()
+    incident = session.query(IncidentReport).options(
+        joinedload(IncidentReport.reported_user),
+        joinedload(IncidentReport.reporter),
+        joinedload(IncidentReport.resolver)
+    ).filter_by(id=incident_id).first()
+    
+    if not incident:
+        flash("Incident not found.", "danger")
+        session.close()
+        return redirect(url_for('admin_incidents'))
+    
+    form = forms.IncidentActionForm()
+    form.status.data = incident.status
+    form.admin_notes.data = incident.admin_notes
+    form.action_taken.data = incident.action_taken
+    
+    if form.validate_on_submit():
+        incident.status = form.status.data
+        incident.admin_notes = form.admin_notes.data
+        incident.action_taken = form.action_taken.data
+        
+        if form.status.data in ['Resolved', 'Dismissed'] and incident.resolved_date is None:
+            incident.resolved_date = datetime.now()
+            incident.resolved_by = current_user.id
+        
+        session.commit()
+        flash('Incident updated successfully.', 'success')
+        session.close()
+        return redirect(url_for('admin_incidents'))
+    
+    session.close()
+    return render_template('manage_incident.html', incident=incident, form=form)
 
 @app.route('/practice/<int:test_id>/results')
 @login_required
@@ -721,6 +842,40 @@ def practice_results(test_id):
         return redirect(url_for('practice_selection'))
 
     return render_template('practice_results.html', test_id=test_id, feedback=feedback, score=score)
+
+@app.route('/admin/migrate_database')
+@login_required
+def migrate_database():
+    if current_user.role != 'teacher':
+        flash("Access denied.", "danger")
+        return redirect(url_for('dashboard'))
+    
+    try:
+        import os
+        import shutil
+        from datetime import datetime
+        
+        db_path = 'persistent_database.db'
+        
+        # Create backup of existing database if it exists
+        if os.path.exists(db_path):
+            backup_name = f'persistent_database_backup_{datetime.now().strftime("%Y%m%d_%H%M%S")}.db'
+            shutil.copy2(db_path, backup_name)
+            flash(f"Created backup: {backup_name}", "info")
+        
+        # Drop all tables and recreate them
+        Base.metadata.drop_all(bind=engine)
+        Base.metadata.create_all(bind=engine)
+        
+        # Seed the database with initial data
+        seed_data()
+        
+        flash("Database migrated successfully! The incident reporting system should now work correctly.", "success")
+        
+    except Exception as e:
+        flash(f"Migration failed: {str(e)}", "danger")
+    
+    return redirect(url_for('dashboard'))
 
 if __name__ == '__main__':
     Base.metadata.create_all(bind=engine)  # Ensure tables exist

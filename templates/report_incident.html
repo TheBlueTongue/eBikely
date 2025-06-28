@@ -1,0 +1,390 @@
+{% extends "base.html" %}
+{% block title %}Report Incident{% endblock %}
+
+{% block content %}
+<div class="container welcome-container">
+  <!-- Hero Section -->
+  <div class="hero-section card text-white p-5 mb-5 fade-in">
+    <div class="text-center">
+      <i class="fas fa-exclamation-triangle dashboard-icon mb-3"></i>
+      <h1 class="display-4 mb-3">Report an Incident</h1>
+      <p class="lead mb-0">Help maintain a safe and respectful environment</p>
+    </div>
+  </div>
+
+  <div class="row justify-content-center slide-up-delay">
+    <div class="col-lg-8 col-md-10">
+      <div class="card feature-card p-4">
+        <div class="card-header gradient-orange mb-4">
+          <i class="fas fa-file-alt me-2"></i>
+          <h4 class="mb-0">Incident Report Form</h4>
+        </div>
+
+        <form method="POST">
+          {{ form.hidden_tag() }}
+          
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="{{ form.reported_user.id }}" class="form-label">
+                <i class="fas fa-user me-2"></i>User Being Reported
+              </label>
+              {{ form.reported_user(class="form-select form-control-modern") }}
+              {% if form.reported_user.errors %}
+                <div class="text-danger small mt-1">
+                  {% for error in form.reported_user.errors %}
+                    <div>{{ error }}</div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+            
+            <div class="col-md-6">
+              <label for="{{ form.incident_type.id }}" class="form-label">
+                <i class="fas fa-list me-2"></i>Incident Type
+              </label>
+              {{ form.incident_type(class="form-select form-control-modern") }}
+              {% if form.incident_type.errors %}
+                <div class="text-danger small mt-1">
+                  {% for error in form.incident_type.errors %}
+                    <div>{{ error }}</div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="{{ form.severity.id }}" class="form-label">
+                <i class="fas fa-thermometer-half me-2"></i>Severity Level
+              </label>
+              {{ form.severity(class="form-select form-control-modern") }}
+              {% if form.severity.errors %}
+                <div class="text-danger small mt-1">
+                  {% for error in form.severity.errors %}
+                    <div>{{ error }}</div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+            
+            <div class="col-md-6">
+              <label for="{{ form.date_of_incident.id }}" class="form-label">
+                <i class="fas fa-calendar me-2"></i>Date of Incident
+              </label>
+              {{ form.date_of_incident(class="form-control form-control-modern") }}
+              {% if form.date_of_incident.errors %}
+                <div class="text-danger small mt-1">
+                  {% for error in form.date_of_incident.errors %}
+                    <div>{{ error }}</div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="{{ form.location.id }}" class="form-label">
+              <i class="fas fa-map-marker-alt me-2"></i>Location
+            </label>
+            {{ form.location(class="form-control form-control-modern", placeholder="Where did this incident occur?") }}
+            {% if form.location.errors %}
+              <div class="text-danger small mt-1">
+                {% for error in form.location.errors %}
+                  <div>{{ error }}</div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="mb-4">
+            <label for="{{ form.description.id }}" class="form-label">
+              <i class="fas fa-comment me-2"></i>Description
+            </label>
+            {{ form.description(class="form-control form-control-modern", rows="5", placeholder="Please provide a detailed description of what happened...") }}
+            {% if form.description.errors %}
+              <div class="text-danger small mt-1">
+                {% for error in form.description.errors %}
+                  <div>{{ error }}</div>
+                {% endfor %}
+              </div>
+            {% endif %}
+            <small class="text-muted">Be specific and factual. Minimum 10 characters required.</small>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              {{ form.submit(class="btn btn-primary btn-lg w-100") }}
+            </div>
+            <div class="col-md-6">
+              <a href="{{ url_for('dashboard') }}" class="btn btn-outline-light btn-lg w-100">
+                <i class="fas fa-times me-2"></i>Cancel
+              </a>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Information Section -->
+  <div class="row mt-5 slide-up-delay">
+    <div class="col-12">
+      <div class="card feature-card p-4">
+        <div class="card-header gradient-blue mb-3">
+          <i class="fas fa-info-circle me-2"></i>
+          <h4 class="mb-0">Important Information</h4>
+        </div>
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-icon">
+              <i class="fas fa-shield-alt text-primary"></i>
+            </div>
+            <div class="info-content">
+              <h6>Confidential Process</h6>
+              <p>All reports are handled confidentially by school administrators.</p>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-icon">
+              <i class="fas fa-clock text-success"></i>
+            </div>
+            <div class="info-content">
+              <h6>Timely Response</h6>
+              <p>Reports are reviewed within 24 hours and action taken as appropriate.</p>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-icon">
+              <i class="fas fa-balance-scale text-warning"></i>
+            </div>
+            <div class="info-content">
+              <h6>Fair Investigation</h6>
+              <p>All parties involved will have the opportunity to share their perspective.</p>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-icon">
+              <i class="fas fa-hand-paper text-danger"></i>
+            </div>
+            <div class="info-content">
+              <h6>False Reports</h6>
+              <p>Making false reports is a serious offense and will result in disciplinary action.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Layout */
+.welcome-container {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+}
+
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+    border-radius: 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.dashboard-icon {
+    font-size: 3rem;
+    color: #fff3cd;
+}
+
+/* Feature Cards */
+.feature-card {
+    background: linear-gradient(to right, #3f51b5cc, #2196f3cc);
+    border-radius: 1rem;
+    backdrop-filter: blur(6px);
+    border: none;
+    color: white;
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Card Headers */
+.card-header {
+    background: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.gradient-orange {
+    color: #ff9800;
+}
+
+.gradient-blue {
+    color: #00c6ff;
+}
+
+/* Form Styling */
+.form-label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.form-control-modern, .form-select {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    color: white;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control-modern:focus, .form-select:focus {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: #00c6ff;
+    box-shadow: 0 0 0 0.25rem rgba(0, 198, 255, 0.25);
+    color: white;
+}
+
+.form-control-modern::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.form-select option {
+    background: #2c3e50;
+    color: white;
+}
+
+/* Buttons */
+.btn-primary {
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(45deg, #0056b3, #004085);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4);
+}
+
+.btn-outline-light {
+    border-color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-light:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.8);
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Info Grid */
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.info-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    transition: background 0.3s ease;
+}
+
+.info-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.info-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 0.25rem;
+}
+
+.info-content h6 {
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.info-content p {
+    margin: 0;
+    font-size: 0.9rem;
+    opacity: 0.9;
+    line-height: 1.4;
+}
+
+/* Text Colors */
+.text-primary {
+    color: #00c6ff !important;
+}
+
+.text-success {
+    color: #00ff7f !important;
+}
+
+.text-warning {
+    color: #ffc107 !important;
+}
+
+.text-danger {
+    color: #dc3545 !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .welcome-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+    
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Animations */
+.fade-in {
+    animation: fadeIn 1s ease-in;
+}
+
+.slide-up-delay {
+    animation: slideUp 0.8s ease-out 0.3s backwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}
