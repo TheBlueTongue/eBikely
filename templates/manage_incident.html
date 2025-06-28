@@ -155,6 +155,20 @@
           <h4 class="mb-0">Take Action</h4>
         </div>
 
+        <!-- Display form errors if any -->
+        {% if form.errors %}
+          <div class="alert alert-danger mb-3">
+            <h6><i class="fas fa-exclamation-triangle mr-2"></i>Form Errors:</h6>
+            <ul class="mb-0">
+              {% for field, errors in form.errors.items() %}
+                {% for error in errors %}
+                  <li>{{ field }}: {{ error }}</li>
+                {% endfor %}
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+
         <form method="POST">
           {{ form.hidden_tag() }}
           
@@ -163,6 +177,13 @@
               <i class="fas fa-flag mr-2"></i>Update Status
             </label>
             {{ form.status(class="form-select form-control-modern") }}
+            {% if form.status.errors %}
+              <div class="invalid-feedback d-block">
+                {% for error in form.status.errors %}
+                  <small class="text-danger">{{ error }}</small>
+                {% endfor %}
+              </div>
+            {% endif %}
           </div>
 
           <div class="mb-3">
@@ -170,6 +191,13 @@
               <i class="fas fa-sticky-note mr-2"></i>Admin Notes
             </label>
             {{ form.admin_notes(class="form-control form-control-modern", rows="4", placeholder="Add notes about your investigation or findings...") }}
+            {% if form.admin_notes.errors %}
+              <div class="invalid-feedback d-block">
+                {% for error in form.admin_notes.errors %}
+                  <small class="text-danger">{{ error }}</small>
+                {% endfor %}
+              </div>
+            {% endif %}
           </div>
 
           <div class="mb-4">
@@ -177,6 +205,13 @@
               <i class="fas fa-gavel mr-2"></i>Action Taken
             </label>
             {{ form.action_taken(class="form-control form-control-modern", rows="4", placeholder="Describe any disciplinary action or resolution...") }}
+            {% if form.action_taken.errors %}
+              <div class="invalid-feedback d-block">
+                {% for error in form.action_taken.errors %}
+                  <small class="text-danger">{{ error }}</small>
+                {% endfor %}
+              </div>
+            {% endif %}
           </div>
 
           <div class="action-buttons">

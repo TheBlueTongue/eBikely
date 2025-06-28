@@ -65,7 +65,7 @@
           <h4 class="mb-0">Filters & Actions</h4>
         </div>
         <div class="row align-items-end">
-          <div class="col-md-3">
+          <div class="col-md-4">
             <label class="form-label">Status Filter</label>
             <select class="form-select form-control-modern" id="statusFilter" onchange="applyFilters()">
               <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Status</option>
@@ -75,7 +75,7 @@
               <option value="Dismissed" {% if status_filter == 'Dismissed' %}selected{% endif %}>Dismissed</option>
             </select>
           </div>
-          <div class="col-md-3">
+          <div class="col-md-4">
             <label class="form-label">Severity Filter</label>
             <select class="form-select form-control-modern" id="severityFilter" onchange="applyFilters()">
               <option value="all" {% if severity_filter == 'all' %}selected{% endif %}>All Severity</option>
@@ -85,17 +85,106 @@
               <option value="Low" {% if severity_filter == 'Low' %}selected{% endif %}>Low</option>
             </select>
           </div>
-          <div class="col-md-3">
+          <div class="col-md-2">
             <button class="btn btn-outline-light w-100" onclick="clearFilters()">
               <i class="fas fa-undo mr-2"></i>Clear Filters
             </button>
           </div>
-          <div class="col-md-3">
+          <div class="col-md-2">
+            <button class="btn btn-success w-100" onclick="toggleCreateForm()">
+              <i class="fas fa-plus mr-2"></i>Create Report
+            </button>
+          </div>
+          <div class="col-md-2">
             <a href="{{ url_for('dashboard') }}" class="btn btn-primary w-100">
               <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
             </a>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create New Incident Form (Hidden by default) -->
+  <div class="row slide-up-delay mb-4" id="createIncidentForm" style="display: none;">
+    <div class="col-12">
+      <div class="card feature-card p-4">
+        <div class="card-header gradient-green mb-3">
+          <i class="fas fa-plus mr-2"></i>
+          <h4 class="mb-0">Create New Incident Report</h4>
+        </div>
+        <form method="POST" action="{{ url_for('admin_incidents') }}">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">Reported User *</label>
+                <select class="form-select form-control-modern" name="reported_user_id" required>
+                  <option value="">Select a user...</option>
+                  {% for user in all_users %}
+                    <option value="{{ user.id }}">{{ user.username }} ({{ user.role }})</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">Incident Type *</label>
+                <select class="form-select form-control-modern" name="incident_type" required>
+                  <option value="">Select incident type...</option>
+                  <option value="unsafe_riding">Unsafe Riding</option>
+                  <option value="speeding">Speeding</option>
+                  <option value="improper_parking">Improper Parking</option>
+                  <option value="equipment_damage">Equipment Damage</option>
+                  <option value="rule_violation">Rule Violation</option>
+                  <option value="safety_concern">Safety Concern</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">Severity *</label>
+                <select class="form-select form-control-modern" name="severity" required>
+                  <option value="">Select severity...</option>
+                  <option value="Critical">Critical</option>
+                  <option value="High">High</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Low">Low</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">Date of Incident</label>
+                <input type="date" class="form-control form-control-modern" name="date_of_incident" max="{{ today }}" value="{{ today }}">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">Location</label>
+                <input type="text" class="form-control form-control-modern" name="location" placeholder="Where did this incident occur?">
+              </div>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Description *</label>
+            <textarea class="form-control form-control-modern" name="description" rows="4" placeholder="Provide detailed description of the incident..." required></textarea>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <button type="submit" class="btn btn-success">
+                <i class="fas fa-save mr-2"></i>Create Report
+              </button>
+              <button type="button" class="btn btn-secondary ml-2" onclick="toggleCreateForm()">
+                <i class="fas fa-times mr-2"></i>Cancel
+              </button>
+            </div>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -170,19 +259,29 @@
                 </div>
 
                 <div class="incident-actions">
-                  <a href="{{ url_for('manage_incident', incident_id=incident.id) }}" class="btn btn-outline-light btn-sm">
-                    <i class="fas fa-edit mr-1"></i>Manage
-                  </a>
-                  {% if incident.status == 'Open' %}
-                    <span class="action-needed">
-                      <i class="fas fa-exclamation-circle mr-1"></i>Action Needed
-                    </span>
-                  {% elif incident.status == 'Resolved' %}
-                    <span class="resolved-info">
-                      <i class="fas fa-check-circle mr-1"></i>
-                      Resolved by {{ incident.resolver.username if incident.resolver else 'Unknown' }}
-                    </span>
-                  {% endif %}
+                  <div class="action-buttons">
+                    <a href="{{ url_for('manage_incident', incident_id=incident.id) }}" class="btn btn-outline-light btn-sm">
+                      <i class="fas fa-edit mr-1"></i>Manage
+                    </a>
+                    <button type="button" class="btn btn-outline-danger btn-sm ml-2 delete-incident-btn" 
+                            data-incident-id="{{ incident.id }}" 
+                            data-incident-type="{{ incident.incident_type.replace('_', ' ').title() }}" 
+                            data-reported-user="{{ incident.reported_user.username }}">
+                      <i class="fas fa-trash mr-1"></i>Delete
+                    </button>
+                  </div>
+                  <div class="status-info">
+                    {% if incident.status == 'Open' %}
+                      <span class="action-needed">
+                        <i class="fas fa-exclamation-circle mr-1"></i>Action Needed
+                      </span>
+                    {% elif incident.status == 'Resolved' %}
+                      <span class="resolved-info">
+                        <i class="fas fa-check-circle mr-1"></i>
+                        Resolved by {{ incident.resolver.username if incident.resolver else 'Unknown' }}
+                      </span>
+                    {% endif %}
+                  </div>
                 </div>
               </div>
             {% endfor %}
@@ -227,6 +326,38 @@ function applyFilters() {
 function clearFilters() {
     window.location.href = '{{ url_for("admin_incidents") }}';
 }
+
+function toggleCreateForm() {
+    const form = document.getElementById('createIncidentForm');
+    if (form.style.display === 'none') {
+        form.style.display = 'block';
+        form.scrollIntoView({ behavior: 'smooth' });
+    } else {
+        form.style.display = 'none';
+    }
+}
+
+// Handle delete button clicks
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteButtons = document.querySelectorAll('.delete-incident-btn');
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const incidentId = this.getAttribute('data-incident-id');
+            const incidentType = this.getAttribute('data-incident-type');
+            const reportedUser = this.getAttribute('data-reported-user');
+            
+            // Show confirmation dialog
+            if (confirm(`Are you sure you want to delete the "${incidentType}" incident report involving ${reportedUser}?\n\nThis action cannot be undone.`)) {
+                // Create a form and submit it
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/admin/incident/${incidentId}/delete`;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    });
+});
 </script>
 
 <style>
@@ -436,6 +567,17 @@ function clearFilters() {
     border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.status-info {
+    display: flex;
+    align-items: center;
+}
+
 .action-needed {
     color: #ffc107;
     font-weight: 600;
@@ -461,15 +603,26 @@ function clearFilters() {
     transform: translateY(-1px);
 }
 
-.btn-primary {
-    background: linear-gradient(45deg, #007bff, #0056b3);
-    border: none;
+.btn-outline-danger {
+    border-color: rgba(220, 53, 69, 0.6);
+    color: rgba(220, 53, 69, 0.9);
     transition: all 0.3s ease;
 }
 
-.btn-primary:hover {
-    background: linear-gradient(45deg, #0056b3, #004085);
+.btn-outline-danger:hover {
+    background: rgba(220, 53, 69, 0.2);
+    border-color: rgba(220, 53, 69, 0.9);
+    color: #dc3545;
     transform: translateY(-1px);
+}
+
+/* Button group styling */
+.incident-actions .btn {
+    margin-right: 0.5rem;
+}
+
+.incident-actions .btn:last-of-type {
+    margin-right: 0;
 }
 
 /* Empty State */

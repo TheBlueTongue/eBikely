@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, RadioField, TextAreaField, DateField, IntegerField, SelectField, BooleanField
-from wtforms.validators import DataRequired, Length, Email, EqualTo, NumberRange
+from wtforms.validators import DataRequired, Length, Email, EqualTo, NumberRange, Optional
 from flask_wtf import FlaskForm
 from wtforms.fields import DateTimeField
 from datetime import datetime
@@ -74,13 +74,17 @@ class IncidentReportForm(FlaskForm):
     submit = SubmitField('Submit Report')
 
 class IncidentActionForm(FlaskForm):
-    status = SelectField('Status', choices=[
-        ('Open', 'Open'),
-        ('Under Investigation', 'Under Investigation'),
-        ('Resolved', 'Resolved'),
-        ('Dismissed', 'Dismissed')
-    ])
-    admin_notes = TextAreaField('Admin Notes')
-    action_taken = TextAreaField('Action Taken')
+    status = SelectField('Status', 
+                        choices=[
+                            ('Open', 'Open'),
+                            ('Under Investigation', 'Under Investigation'),
+                            ('Resolved', 'Resolved'),
+                            ('Dismissed', 'Dismissed')
+                        ],
+                        validators=[DataRequired(message="Please select a status")])
+    admin_notes = TextAreaField('Admin Notes', 
+                               validators=[Optional()])
+    action_taken = TextAreaField('Action Taken', 
+                                validators=[Optional()])
     submit = SubmitField('Update Report')
     

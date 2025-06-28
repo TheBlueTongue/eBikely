@@ -140,8 +140,10 @@ def ebike_management():
     session = SessionLocal()
 
     if current_user.role == 'teacher':
-        # Teachers see an overview of all student e-bikes
-        all_ebikes = session.query(EBike).join(User).filter(User.role == 'student').all()
+        # Teachers see an overview of all student e-bikes with eager loading
+        all_ebikes = session.query(EBike).options(
+            joinedload(EBike.owner)
+        ).join(User).filter(User.role == 'student').all()
         session.close()
         return render_template('admin_ebike_overview.html', ebikes=all_ebikes)
 
@@ -198,7 +200,9 @@ def admin_ebike_overview():
         return redirect(url_for('dashboard'))
 
     session = SessionLocal()
-    all_ebikes = session.query(EBike).join(User).filter(User.role == 'student').all()
+    all_ebikes = session.query(EBike).options(
+        joinedload(EBike.owner)
+    ).join(User).filter(User.role == 'student').all()
     session.close()
     return render_template('admin_ebike_overview.html', ebikes=all_ebikes)
 
@@ -749,7 +753,7 @@ def report_incident():
     session.close()
     return render_template('report_incident.html', form=form)
 
-@app.route('/admin/incidents')
+@app.route('/admin/incidents', methods=['GET', 'POST'])
 @login_required
 def admin_incidents():
     if current_user.role != 'teacher':
@@ -758,6 +762,45 @@ def admin_incidents():
     
     session = SessionLocal()
     
+    # Handle POST request for creating new incident report
+    if request.method == 'POST':
+        # Get form data
+        reported_user_id = request.form.get('reported_user_id')
+        incident_type = request.form.get('incident_type')
+        severity = request.form.get('severity')
+        description = request.form.get('description')
+        location = request.form.get('location')
+        date_of_incident = request.form.get('date_of_incident')
+        
+        if reported_user_id and incident_type and severity and description:
+            try:
+                # Parse date
+                incident_date = datetime.strptime(date_of_incident, '%Y-%m-%d').date() if date_of_incident else date.today()
+                
+                # Create new incident report
+                new_incident = IncidentReport(
+                    reported_user_id=int(reported_user_id),
+                    reporter_id=current_user.id,
+                    incident_type=incident_type,
+                    severity=severity,
+                    description=description,
+                    location=location or 'Not specified',
+                    date_of_incident=incident_date,
+                    status='Open'
+                )
+                session.add(new_incident)
+                session.commit()
+                flash('Incident report created successfully.', 'success')
+            except Exception as e:
+                session.rollback()
+                flash(f'Error creating incident report: {str(e)}', 'danger')
+        else:
+            flash('Please fill in all required fields.', 'danger')
+        
+        session.close()
+        return redirect(url_for('admin_incidents'))
+    
+    # Handle GET request - display incidents with filters
     # Get filter parameters
     status_filter = request.args.get('status', 'all')
     severity_filter = request.args.get('severity', 'all')
@@ -784,12 +827,17 @@ def admin_incidents():
         'critical_reports': session.query(IncidentReport).filter_by(severity='Critical').count(),
     }
     
+    # Get all users for the create form dropdown
+    all_users = session.query(User).filter(User.id != current_user.id).all()
+    
     session.close()
     return render_template('admin_incidents.html', 
                          incidents=incidents, 
                          stats=stats,
                          status_filter=status_filter,
-                         severity_filter=severity_filter)
+                         severity_filter=severity_filter,
+                         all_users=all_users,
+                         today=date.today().strftime('%Y-%m-%d'))
 
 @app.route('/admin/incident/<int:incident_id>', methods=['GET', 'POST'])
 @login_required
@@ -799,38 +847,101 @@ def manage_incident(incident_id):
         return redirect(url_for('dashboard'))
     
     session = SessionLocal()
-    incident = session.query(IncidentReport).options(
-        joinedload(IncidentReport.reported_user),
-        joinedload(IncidentReport.reporter),
-        joinedload(IncidentReport.resolver)
-    ).filter_by(id=incident_id).first()
     
-    if not incident:
-        flash("Incident not found.", "danger")
-        session.close()
-        return redirect(url_for('admin_incidents'))
-    
-    form = forms.IncidentActionForm()
-    form.status.data = incident.status
-    form.admin_notes.data = incident.admin_notes
-    form.action_taken.data = incident.action_taken
-    
-    if form.validate_on_submit():
-        incident.status = form.status.data
-        incident.admin_notes = form.admin_notes.data
-        incident.action_taken = form.action_taken.data
+    try:
+        incident = session.query(IncidentReport).options(
+            joinedload(IncidentReport.reported_user),
+            joinedload(IncidentReport.reporter),
+            joinedload(IncidentReport.resolver)
+        ).filter_by(id=incident_id).first()
         
-        if form.status.data in ['Resolved', 'Dismissed'] and incident.resolved_date is None:
-            incident.resolved_date = datetime.now()
-            incident.resolved_by = current_user.id
+        if not incident:
+            flash("Incident not found.", "danger")
+            return redirect(url_for('admin_incidents'))
         
-        session.commit()
-        flash('Incident updated successfully.', 'success')
+        form = forms.IncidentActionForm()
+        
+        # Debug: Print form data
+        if request.method == 'POST':
+            print(f"Form submitted with data: {request.form}")
+            print(f"Form validation result: {form.validate()}")
+            print(f"Form errors: {form.errors}")
+        
+        if form.validate_on_submit():
+            try:
+                print(f"Updating incident {incident_id}")
+                print(f"New status: {form.status.data}")
+                print(f"Admin notes: {form.admin_notes.data}")
+                print(f"Action taken: {form.action_taken.data}")
+                
+                # Update incident fields
+                incident.status = form.status.data
+                incident.admin_notes = form.admin_notes.data
+                incident.action_taken = form.action_taken.data
+                
+                # Set resolution information if status is resolved/dismissed
+                if form.status.data in ['Resolved', 'Dismissed'] and incident.resolved_date is None:
+                    incident.resolved_date = datetime.now()
+                    incident.resolved_by = current_user.id
+                    print(f"Setting resolution date and resolver")
+                
+                session.commit()
+                print("Incident updated successfully")
+                flash('Incident updated successfully.', 'success')
+                return redirect(url_for('admin_incidents'))
+                
+            except Exception as e:
+                print(f"Error updating incident: {e}")
+                session.rollback()
+                flash(f'Error updating incident: {str(e)}', 'danger')
+                
+        elif request.method == 'GET':
+            # Pre-populate form with current values only on GET request
+            form.status.data = incident.status
+            form.admin_notes.data = incident.admin_notes
+            form.action_taken.data = incident.action_taken
+        
+        # Show validation errors if any
+        if form.errors:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    flash(f'{field}: {error}', 'danger')
+        
+        return render_template('manage_incident.html', incident=incident, form=form)
+        
+    finally:
         session.close()
-        return redirect(url_for('admin_incidents'))
+
+@app.route('/admin/incident/<int:incident_id>/delete', methods=['POST'])
+@login_required
+def delete_incident(incident_id):
+    if current_user.role != 'teacher':
+        flash("Access denied.", "danger")
+        return redirect(url_for('dashboard'))
     
-    session.close()
-    return render_template('manage_incident.html', incident=incident, form=form)
+    session = SessionLocal()
+    try:
+        incident = session.query(IncidentReport).filter_by(id=incident_id).first()
+        
+        if not incident:
+            flash("Incident not found.", "danger")
+        else:
+            # Store incident info for confirmation message
+            incident_type = incident.incident_type.replace('_', ' ').title()
+            reported_user = incident.reported_user.username
+            
+            # Delete the incident
+            session.delete(incident)
+            session.commit()
+            flash(f'Incident report "{incident_type}" involving {reported_user} has been deleted.', 'success')
+            
+    except Exception as e:
+        session.rollback()
+        flash(f'Error deleting incident: {str(e)}', 'danger')
+    finally:
+        session.close()
+    
+    return redirect(url_for('admin_incidents'))
 
 @app.route('/practice/<int:test_id>/results')
 @login_required
