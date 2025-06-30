@@ -27,8 +27,11 @@
         <div class="col-md-6 col-lg-3 mb-4">
             <div class="feature-card card text-white p-4 h-100">
                 <h4>Practice Test Progress</h4>
-                {% if completed_practice_tests > 0 %}
-                    <p><strong>{{ completed_practice_tests }}</strong> practice test{{ 's' if completed_practice_tests > 1 else '' }} passed.</p>
+                {% if total_practice_attempts > 0 %}
+                    <p><strong>{{ completed_practice_tests }}</strong> test{{ 's' if completed_practice_tests != 1 else '' }} passed out of <strong>{{ total_practice_attempts }}</strong> attempt{{ 's' if total_practice_attempts != 1 else '' }}.</p>
+                    {% if best_practice_score > 0 %}
+                        <p><small>Best Score: {{ best_practice_score }}/20 ({{ ((best_practice_score / 20) * 100)|round|int }}%)</small></p>
+                    {% endif %}
                 {% else %}
                     <p>No practice tests completed yet.</p>
                 {% endif %}
@@ -41,7 +44,11 @@
             <div class="feature-card card text-white p-4 h-100">
                 <h4>Real Test Attempts</h4>
                 <p>{{ total_real_test_attempts }} attempt{{ 's' if total_real_test_attempts != 1 else '' }} made.</p>
-                <a href="{{ url_for('real_test') }}" class="btn btn-outline-light btn-sm mt-2">View Results</a>
+                {% if total_real_test_attempts > 0 %}
+                    <a href="{{ url_for('view_real_test_results') }}" class="btn btn-outline-light btn-sm mt-2">View Results</a>
+                {% else %}
+                    <a href="{{ url_for('real_test') }}" class="btn btn-outline-light btn-sm mt-2">Take Test</a>
+                {% endif %}
             </div>
         </div>
 

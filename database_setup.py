@@ -4,6 +4,7 @@ from flask_login import UserMixin
 from datetime import datetime
 from sqlalchemy import Date, Enum
 import enum
+import random
 
 DATABASE_URL = 'sqlite:///persistent_database.db'
 
@@ -190,7 +191,6 @@ def seed_data():
                 {"question": "What is the maximum speed allowed for e-bikes in Australia?", "options": ["25 km/h", "40 km/h", "15 km/h", "35 km/h"], "correct": "25 km/h"},
                 {"question": "How should you position yourself on the road when riding an e-bike?", "options": ["To the far left", "In the middle of the lane", "On the footpath", "Against traffic"], "correct": "To the far left"},
                 {"question": "What should you do before riding your e-bike for the first time?", "options": ["Check brakes and battery", "Start pedaling", "Put on gloves", "Adjust mirrors"], "correct": "Check brakes and battery"},
-                # +15 new
                 {"question": "Which part of the e-bike provides electric assistance?", "options": ["Motor", "Frame", "Handlebar", "Tire"], "correct": "Motor"},
                 {"question": "What is the safest way to cross a busy intersection?", "options": ["Walk bike across", "Speed through", "Ignore signals", "Use pedestrian crossing"], "correct": "Walk bike across"},
                 {"question": "Where should you not ride an e-bike?", "options": ["On highways", "On shared paths", "On bike lanes", "On quiet streets"], "correct": "On highways"},
@@ -263,11 +263,21 @@ def seed_data():
             session.commit()
 
             for q_data in question_list:
+                # Randomize the order of options
+                options = q_data["options"].copy()
+                correct_answer = q_data["correct"]
+                
+                # Shuffle the options
+                random.shuffle(options)
+                
+                # Find the new position of the correct answer
+                correct_answer_after_shuffle = correct_answer
+                
                 question = PracticeQuestion(
                     test_id=test.id,
                     question=q_data["question"],
-                    options=",".join(q_data["options"]),
-                    correct_answer=q_data["correct"]
+                    options=",".join(options),
+                    correct_answer=correct_answer_after_shuffle
                 )
                 session.add(question)
             session.commit()

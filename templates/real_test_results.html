@@ -16,6 +16,13 @@
   </div>
 
   <div class="feature-card card text-white p-4 slide-up-delay" style="max-width: 900px; margin: 0 auto;">
+    {% if is_historical %}
+      <div class="alert alert-info mb-4">
+        <i class="fas fa-info-circle"></i>
+        <strong>Note:</strong> This shows your most recent real test attempt. Detailed answer feedback is only available immediately after taking a test.
+      </div>
+    {% endif %}
+    
     {% for result in feedback %}
       <div class="mb-4">
         <h5>{{ result.question }}</h5>
@@ -25,7 +32,6 @@
               {% if label == result.correct_answer %}
                 list-group-item-success
               {% elif label == result.user_answer and result.user_answer != result.correct_answer %}
-
                 list-group-item-danger
               {% endif %}">
 
@@ -34,9 +40,8 @@
                 {% if label == result.correct_answer %}
                   <span class="badge badge-success ml-2">✔ Correct answer</span>
                 {% endif %}
-                {% if label == result.user_answer %}
+                {% if not is_historical and label == result.user_answer %}
                   {% if label == result.correct_answer %}
-
                     <span class="badge badge-light ml-2">Your answer</span>
                   {% else %}
                     <span class="badge badge-danger ml-2">✘ Your answer</span>
@@ -52,7 +57,10 @@
       {% endif %}
     {% endfor %}
 
-    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-light btn-lg mt-4 w-100 pulse">Back to Dashboard</a>
+    <div class="text-center mt-4">
+      <a href="{{ url_for('dashboard') }}" class="btn btn-outline-light btn-lg mr-3 pulse">Back to Dashboard</a>
+      <a href="{{ url_for('real_test') }}" class="btn btn-primary btn-lg">Take Another Test</a>
+    </div>
   </div>
 </div>
 

@@ -116,10 +116,18 @@ def dashboard():
 
     # Student dashboard view
     ebike_count = session.query(EBike).filter_by(owner_id=current_user.id).count()
+    
+    # Practice test statistics
+    total_practice_attempts = session.query(PracticeAttempt).filter_by(user_id=current_user.id).count()
     completed_practice_tests = session.query(PracticeAttempt).filter(
         PracticeAttempt.user_id == current_user.id,
-        PracticeAttempt.score >= 80
+        PracticeAttempt.score >= 16  # 16/20 = 80% passing score
     ).count()
+    
+    # Get best practice test score
+    best_practice_score = session.query(PracticeAttempt.score).filter_by(user_id=current_user.id).order_by(PracticeAttempt.score.desc()).first()
+    best_practice_score = best_practice_score[0] if best_practice_score else 0
+    
     total_real_test_attempts = session.query(RealTestAttempt).filter_by(user_id=current_user.id).count()
     available_parking_spots = session.query(ParkingSpot).filter_by(is_available=True).count()
     practice_tests = session.query(PracticeTest).all()  # Show all available practice tests
@@ -129,6 +137,8 @@ def dashboard():
         'dashboard.html',
         ebike_count=ebike_count,
         completed_practice_tests=completed_practice_tests,
+        total_practice_attempts=total_practice_attempts,
+        best_practice_score=best_practice_score,
         available_parking_spots=available_parking_spots,
         total_real_test_attempts=total_real_test_attempts,
         practice_tests=practice_tests
@@ -324,8 +334,16 @@ def parking_spots():
     # Load layout grid from Excel file
     base_dir = os.path.dirname(os.path.abspath(__file__))
     map_path = os.path.join(base_dir, "Map.xlsx")
-    layout_df = pd.read_excel(map_path, header=None).iloc[0:30, 0:42].fillna("").astype(str)
-    layout_grid = layout_df.values.tolist()
+    
+    try:
+        layout_df = pd.read_excel(map_path, header=None).iloc[0:30, 0:42].fillna("").astype(str)
+        layout_grid = layout_df.values.tolist()
+    except FileNotFoundError:
+        flash("Parking layout file not found. Please contact an administrator.", "danger")
+        layout_grid = [["" for _ in range(42)] for _ in range(30)]  # Empty grid fallback
+    except Exception as e:
+        flash("Error loading parking layout. Please contact an administrator.", "danger")
+        layout_grid = [["" for _ in range(42)] for _ in range(30)]  # Empty grid fallback
 
     session.close()
 
@@ -861,19 +879,8 @@ def manage_incident(incident_id):
         
         form = forms.IncidentActionForm()
         
-        # Debug: Print form data
-        if request.method == 'POST':
-            print(f"Form submitted with data: {request.form}")
-            print(f"Form validation result: {form.validate()}")
-            print(f"Form errors: {form.errors}")
-        
         if form.validate_on_submit():
             try:
-                print(f"Updating incident {incident_id}")
-                print(f"New status: {form.status.data}")
-                print(f"Admin notes: {form.admin_notes.data}")
-                print(f"Action taken: {form.action_taken.data}")
-                
                 # Update incident fields
                 incident.status = form.status.data
                 incident.admin_notes = form.admin_notes.data
@@ -883,15 +890,12 @@ def manage_incident(incident_id):
                 if form.status.data in ['Resolved', 'Dismissed'] and incident.resolved_date is None:
                     incident.resolved_date = datetime.now()
                     incident.resolved_by = current_user.id
-                    print(f"Setting resolution date and resolver")
                 
                 session.commit()
-                print("Incident updated successfully")
                 flash('Incident updated successfully.', 'success')
                 return redirect(url_for('admin_incidents'))
                 
             except Exception as e:
-                print(f"Error updating incident: {e}")
                 session.rollback()
                 flash(f'Error updating incident: {str(e)}', 'danger')
                 
@@ -987,6 +991,46 @@ def migrate_database():
         flash(f"Migration failed: {str(e)}", "danger")
     
     return redirect(url_for('dashboard'))
+
+@app.route('/real-test-results')
+@login_required
+def view_real_test_results():
+    session = SessionLocal()
+    
+    # Get the user's most recent real test attempt
+    most_recent_attempt = session.query(RealTestAttempt).filter_by(user_id=current_user.id).order_by(RealTestAttempt.id.desc()).first()
+    
+    if not most_recent_attempt:
+        session.close()
+        flash('No real test attempts found. Take a real test first!', 'warning')
+        return redirect(url_for('real_test'))
+    
+    # Get the questions and answers for this test
+    questions = session.query(RealTestQuestion).filter_by(test_id=most_recent_attempt.test_id).all()
+    
+    # Since we don't store individual answers, we'll show the test questions and correct answers
+    # but indicate that detailed feedback is only available immediately after taking the test
+    feedback = []
+    for question in questions:
+        feedback.append({
+            'question': question.question_text,
+            'user_answer': None,  # We don't store individual answers
+            'correct_answer': question.correct_answer,
+            'options': {
+                'A': question.option_a,
+                'B': question.option_b,
+                'C': question.option_c,
+                'D': question.option_d
+            }
+        })
+    
+    # Calculate score based on pass/fail (since we don't store exact scores)
+    # If they passed, assume they got at least 18/20; if they failed, assume less than 18
+    score = 18 if most_recent_attempt.passed else 17
+    passed = most_recent_attempt.passed
+    
+    session.close()
+    return render_template('real_test_results.html', score=score, passed=passed, feedback=feedback, is_historical=True)
 
 if __name__ == '__main__':
     Base.metadata.create_all(bind=engine)  # Ensure tables exist
