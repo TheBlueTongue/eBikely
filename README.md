@@ -1,8 +1,10 @@
+![eBikely Logo](static/images/logo.png)
+
+
+# eBikely
 
 
 
-
-# eBike Safety Management System
 
 A comprehensive web application for managing eBike safety, testing, and licensing in educational institutions. Built with Flask, SQLAlchemy, HTML, CSS, and JavaScript, this system provides a complete solution for eBike registration, safety testing, incident reporting, and parking management.
 
@@ -54,10 +56,8 @@ This eBike Safety Management System was created for Year 12 Software Development
 ### Setup Instructions
 
 1. **Clone or download the repository**
-   ```bash
-   git clone [your-repository-url]
-   cd "major project"
-   ```
+  
+   https://github.com/TheBlueTongue/eBikely
 
 2. **Install dependencies**
    ```bash
@@ -149,14 +149,7 @@ The application uses SQLAlchemy ORM with the following main models:
 - **Status Tracking**: Open, Under Investigation, Resolved, Dismissed statuses
 - **User History**: Students can view incidents they've been involved in
 
-## Contributing
 
-This is a student project created for HSC Software Development assessment. However, suggestions and feedback are welcome!
-
-For bugs, feature suggestions, or improvements:
-1. Review the code structure and documentation
-2. Test the application thoroughly
-3. Provide detailed feedback on functionality and user experience
 
 ## Future Enhancements
 
@@ -167,19 +160,14 @@ Potential improvements for the system:
 - Integration with school management systems
 - Multi-language support for diverse student populations
 
-## Assessment Context
 
-This project demonstrates:
-- **Advanced Web Development**: Complex Flask application with multiple routes and features
-- **Database Design**: Normalized relational database with proper relationships
-- **User Interface Design**: Responsive, modern web interface with excellent UX
-- **Security Implementation**: Authentication, authorization, and data protection
-- **Code Quality**: Clean, well-documented, and maintainable codebase
-- **Testing and Validation**: Comprehensive form validation and error handling
+
+
+
 
 ## License
 
-This project is created for educational purposes as part of HSC Software Development assessment.
+[MIT](https://choosealicense.com/licenses/mit/)
 
-For educational use and reference only.
+
 
