@@ -19,7 +19,6 @@ Jinja2==3.1.4
 MarkupSafe==3.0.2
 
 # Data processing for Excel files
-pandas==2.0.3
 openpyxl==3.1.2
 
 # Core dependencies
